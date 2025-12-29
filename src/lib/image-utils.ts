@@ -1,5 +1,5 @@
 import React from 'react';
-import { generateImageDataUrl } from '@/components/generated-image';
+import { generateImageDataUrl } from '@/components/shared/generated-image';
 
 export const createFallbackImage = (id: string, width: number = 400, height: number = 300): string => {
   return generateImageDataUrl(id, width, height);
@@ -13,5 +13,5 @@ export const handleImageError = (event: React.SyntheticEvent<HTMLImageElement>, 
   }
 };
 
-// Note: SmartImage component has been moved to src/components/smart-image.tsx
+// Note: SmartImage component has been moved to src/components/shared/smart-image.tsx
 // This file contains helper functions for image handling

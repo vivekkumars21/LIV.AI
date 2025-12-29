@@ -4,8 +4,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
     User,
     onAuthStateChanged,
-    signInWithPopup,
-    GoogleAuthProvider,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
     signOut
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -13,14 +13,16 @@ import { auth } from '@/lib/firebase';
 interface AuthContextType {
     user: User | null;
     loading: boolean;
-    signInWithGoogle: () => Promise<void>;
+    login: (email: string, password: string) => Promise<void>;
+    signup: (email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
     loading: true,
-    signInWithGoogle: async () => { },
+    login: async () => { },
+    signup: async () => { },
     logout: async () => { },
 });
 
@@ -39,12 +41,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return () => unsubscribe();
     }, []);
 
-    const signInWithGoogle = async () => {
-        const provider = new GoogleAuthProvider();
+    const login = async (email: string, password: string) => {
         try {
-            await signInWithPopup(auth, provider);
+            await signInWithEmailAndPassword(auth, email, password);
         } catch (error) {
-            console.error('Error signing in with Google', error);
+            console.error('Error logging in', error);
+            throw error;
+        }
+    };
+
+    const signup = async (email: string, password: string) => {
+        try {
+            await createUserWithEmailAndPassword(auth, email, password);
+        } catch (error) {
+            console.error('Error signing up', error);
             throw error;
         }
     };
@@ -59,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, signInWithGoogle, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
             {children}
         </AuthContext.Provider>
     );

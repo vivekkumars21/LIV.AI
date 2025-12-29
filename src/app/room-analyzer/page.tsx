@@ -1,6 +1,6 @@
 'use client';
 
-import { RoomAnalyzer } from '@/components/room-analyzer';
+import { RoomAnalyzer } from '@/components/features/room-analyzer';
 import { Button } from '@/components/ui/button';
 import { IntraKartLogo } from '@/components/ui/intrakart-logo';
 import { ChevronLeft } from 'lucide-react';
