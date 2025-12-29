@@ -1,0 +1,121 @@
+{
+  "placeholderImages": [
+    {
+      "id": "hero-background",
+      "description": "A modern and luxurious living room with high ceilings.",
+      "imageUrl": "https://picsum.photos/seed/prof-hero/1080/720",
+      "imageHint": "professional living room interior"
+    },
+    {
+      "id": "featured-living-room",
+      "description": "Modern Living Room",
+      "subtext": "Sleek and stylish living room design",
+      "imageUrl": "https://picsum.photos/seed/prof-living/1080/720",
+      "imageHint": "professional modern living room"
+    },
+    {
+      "id": "featured-bedroom",
+      "description": "Contemporary Bedroom",
+      "subtext": "Comfortable and chic bedroom design",
+      "imageUrl": "https://picsum.photos/seed/prof-bedroom/1080/720",
+      "imageHint": "professional contemporary bedroom"
+    },
+    {
+      "id": "featured-dining-room",
+      "description": "Minimalist Dining Room",
+      "subtext": "Elegant and functional dining room design",
+      "imageUrl": "https://picsum.photos/seed/prof-dining/1080/720",
+      "imageHint": "professional dining room"
+    },
+    {
+      "id": "category-sofas",
+      "description": "Sofas",
+      "imageUrl": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=400&q=80",
+      "imageHint": "sofa"
+    },
+    {
+      "id": "category-dining-tables",
+      "description": "Dining Tables",
+      "imageUrl": "https://images.unsplash.com/photo-1581539250439-c96689b516dd?auto=format&fit=crop&w=400&q=80",
+      "imageHint": "dining table"
+    },
+    {
+      "id": "category-beds",
+      "description": "Beds",
+      "imageUrl": "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=400&q=80",
+      "imageHint": "bed"
+    },
+    {
+      "id": "category-storage",
+      "description": "Storage",
+      "imageUrl": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=400&q=80",
+      "imageHint": "storage furniture"
+    },
+    {
+      "id": "category-lighting",
+      "description": "Lighting",
+      "imageUrl": "https://images.unsplash.com/photo-1545558014-8692077e9b5c?auto=format&fit=crop&w=400&q=80",
+      "imageHint": "indoor lighting"
+    },
+    {
+      "id": "category-decor",
+      "description": "Decor",
+      "imageUrl": "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?auto=format&fit=crop&w=400&q=80",
+      "imageHint": "house decor"
+    },
+    {
+      "id": "avatar-sophia",
+      "description": "Avatar of Sophia Turner",
+      "imageUrl": "https://api.dicebear.com/7.x/avataaars/svg?seed=sophia&backgroundColor=b6e3f4,c0aede,d1d4f9",
+      "imageHint": "person avatar"
+    },
+    {
+      "id": "avatar-ethan",
+      "description": "Avatar of Ethan Walker",
+      "imageUrl": "https://api.dicebear.com/7.x/avataaars/svg?seed=ethan&backgroundColor=b6e3f4,c0aede,d1d4f9",
+      "imageHint": "person avatar"
+    },
+    {
+      "id": "avatar-olivia",
+      "description": "Avatar of Olivia Reed",
+      "imageUrl": "https://api.dicebear.com/7.x/avataaars/svg?seed=olivia&backgroundColor=b6e3f4,c0aede,d1d4f9",
+      "imageHint": "person avatar"
+    },
+    {
+      "id": "ar-chair",
+      "description": "Modern Armchair",
+      "imageUrl": "https://images.unsplash.com/photo-1618221196585-11b5b1a7b5b5b?auto=format&fit=crop&w=500&q=80",
+      "imageHint": "armchair"
+    },
+    {
+      "id": "ar-sofa",
+      "description": "3-Seater Sofa",
+      "imageUrl": "https://images.unsplash.com/photo-1618221196585-12b5b1a7b5b5b?auto=format&fit=crop&w=500&q=80",
+      "imageHint": "sofa"
+    },
+    {
+      "id": "ar-table",
+      "description": "Coffee Table",
+      "imageUrl": "https://images.unsplash.com/photo-1618221196585-13b5b1a7b5b5b?auto=format&fit=crop&w=500&q=80",
+      "imageHint": "coffee table"
+    },
+    {
+      "id": "ar-lamp",
+      "description": "Floor Lamp",
+      "imageUrl": "https://images.unsplash.com/photo-1618221196585-14b5b1a7b5b5b?auto=format&fit=crop&w=500&q=80",
+      "imageHint": "floor lamp"
+    },
+    {
+      "id": "ar-bookshelf",
+      "description": "Book Shelf",
+      "imageUrl": "https://images.unsplash.com/photo-1618221196585-15b5b1a7b5b5b?auto=format&fit=crop&w=500&q=80",
+      "imageHint": "bookshelf"
+    },
+    {
+      "id": "ar-plant",
+      "description": "Potted Plant",
+      "imageUrl": "https://images.unsplash.com/photo-1618221196585-16b5b1a7b5b5b?auto=format&fit=crop&w=500&q=80",
+      "imageHint": "potted plant"
+    }
+  ]
+}

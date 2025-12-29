@@ -1,0 +1,18 @@
+<svg width="500" height="500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bookshelfGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff9a9e" />
+      <stop offset="100%" style="stop-color:#fecfef" />
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#bookshelfGrad)" />
+  <g opacity="0.3" fill="white" stroke="white" stroke-width="3" transform="translate(250, 250)">
+    <rect x="-80" y="-120" width="160" height="240" rx="8" />
+    <line x1="-80" y1="-40" x2="80" y2="-40" />
+    <line x1="-80" y1="20" x2="80" y2="20" />
+    <line x1="-80" y1="80" x2="80" y2="80" />
+  </g>
+  <text x="50%" y="90%" text-anchor="middle" dy="0.3em" fill="white" font-family="Arial, sans-serif" font-size="28" font-weight="bold" opacity="0.9">
+    Bookshelf
+  </text>
+</svg>

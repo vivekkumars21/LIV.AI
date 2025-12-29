@@ -1,0 +1,40 @@
+{
+  "name": "IntraKart - AI + AR Interior Design",
+  "short_name": "IntraKart",
+  "description": "Transform your home with intelligent design suggestions using AI and AR technology",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#6366f1",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/intrakart-icon.svg",
+      "sizes": "64x64",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml",
+      "purpose": "apple-touch-icon"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml",
+      "purpose": "favicon"
+    }
+  ],
+  "categories": ["lifestyle", "home", "design", "productivity"],
+  "screenshots": [
+    {
+      "src": "/intrakart-logo.svg",
+      "sizes": "200x60",
+      "type": "image/svg+xml",
+      "platform": "wide",
+      "label": "IntraKart Homepage"
+    }
+  ]
+}

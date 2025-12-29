@@ -1,0 +1,17 @@
+<svg width="500" height="500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="lampGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd89b" />
+      <stop offset="100%" style="stop-color:#19547b" />
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#lampGrad)" />
+  <g opacity="0.3" fill="white" transform="translate(250, 250)">
+    <polygon points="0,-120 60,-40 -60,-40" />
+    <rect x="-4" y="-40" width="8" height="120" />
+    <ellipse cx="0" cy="90" rx="40" ry="10" />
+  </g>
+  <text x="50%" y="90%" text-anchor="middle" dy="0.3em" fill="white" font-family="Arial, sans-serif" font-size="32" font-weight="bold" opacity="0.9">
+    Lamp
+  </text>
+</svg>
