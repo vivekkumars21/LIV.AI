@@ -56,32 +56,32 @@ export function Testimonials() {
           {testimonials.map(testimonial => {
             const avatar = PlaceHolderImages.find(img => img.id === testimonial.avatarId);
             return (
-              <div key={testimonial.id} className="flex gap-4">
+              <div key={testimonial.id} className="flex gap-4 p-6 rounded-3xl bg-white/40 backdrop-blur-md border border-white/30 shadow-sm hover:shadow-md transition-all">
                 {avatar && (
-                  <Avatar>
+                  <Avatar className="h-12 w-12 border-2 border-white shadow-sm">
                     <AvatarImage src={avatar.imageUrl} alt={testimonial.name} />
                     <AvatarFallback>{testimonial.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                 )}
                 <div className="flex-1">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-2">
                     <div>
-                      <p className="font-semibold">{testimonial.name}</p>
-                      <p className="text-sm text-gray-500">{testimonial.date}</p>
+                      <p className="font-semibold text-gray-900">{testimonial.name}</p>
+                      <p className="text-xs text-gray-500">{testimonial.date}</p>
                     </div>
-                    <div className="flex items-center">
+                    <div className="flex items-center bg-white/50 px-2 py-1 rounded-full">
                       {[...Array(5)].map((_, i) => (
                         <Star key={i} filled={i < testimonial.rating} />
                       ))}
                     </div>
                   </div>
-                  <p className="mt-4 text-gray-700">{testimonial.text}</p>
+                  <p className="text-gray-700 leading-relaxed font-light">{testimonial.text}</p>
                   <div className="mt-4 flex items-center gap-6 text-sm text-gray-500">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer">
                       <ThumbsUp className="h-4 w-4" />
                       <span>{testimonial.likes}</span>
                     </div>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer">
                       <MessageSquare className="h-4 w-4" />
                       <span>{testimonial.comments}</span>
                     </div>

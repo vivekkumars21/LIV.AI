@@ -13,16 +13,50 @@ import {
     Ruler,
     CheckCircle,
     AlertCircle,
-    Armchair
+    Armchair,
+    Sparkles,
+    Loader2
 } from 'lucide-react';
+import React from 'react';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
 import { type RoomAnalysis } from '@/lib/room-analyzer';
 
 interface AnalysisResultsProps {
     analysis: RoomAnalysis;
     ceilingHeight: number;
+    imageFile?: File | null;
+    defaultTab?: string;
 }
 
-export function AnalysisResults({ analysis, ceilingHeight }: AnalysisResultsProps) {
+export function AnalysisResults({ analysis, ceilingHeight, imageFile, defaultTab = 'overview' }: AnalysisResultsProps) {
+    const [isGenerating, setIsGenerating] = React.useState(false);
+    const [generatedDesign, setGeneratedDesign] = React.useState<any>(null);
+
+    const handleGenerateDesign = async () => {
+        if (!imageFile) return;
+        setIsGenerating(true);
+        try {
+            const formData = new FormData();
+            formData.append('image', imageFile);
+            formData.append('style', 'modern'); // Default for now
+            formData.append('roomType', 'living room'); // Default
+
+            const response = await fetch('/api/generate-design', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+            setGeneratedDesign(data);
+        } catch (error) {
+            console.error('Design generation failed:', error);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <Alert>
@@ -32,13 +66,64 @@ export function AnalysisResults({ analysis, ceilingHeight }: AnalysisResultsProp
                 </AlertDescription>
             </Alert>
 
-            <Tabs defaultValue="overview" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+            <Tabs defaultValue={defaultTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="details">Details</TabsTrigger>
                     <TabsTrigger value="recommendations">Suggestions</TabsTrigger>
                     <TabsTrigger value="colors">Colors</TabsTrigger>
+                    <TabsTrigger value="design">AI Design</TabsTrigger>
                 </TabsList>
+
+                {/* ... existing tabs content ... */}
+
+                <TabsContent value="design" className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>AI Room Redesign</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {!generatedDesign ? (
+                                <div className="text-center py-8">
+                                    <p className="text-muted-foreground mb-4">Generate a photorealistic redesign of your room using Gemini AI.</p>
+                                    <Button onClick={handleGenerateDesign} disabled={isGenerating} size="lg" className="w-full sm:w-auto">
+                                        {isGenerating ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Generating Concept...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Sparkles className="mr-2 h-4 w-4 text-yellow-400" />
+                                                Generate AI Redesign
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
+                                        <Image
+                                            src={generatedDesign.designedImage}
+                                            alt="Designed Room"
+                                            fill
+                                            className="object-cover"
+                                        />
+                                    </div>
+                                    <div className="p-4 bg-muted/50 rounded-lg">
+                                        <h4 className="font-semibold mb-2">AI Design Prompt</h4>
+                                        <p className="text-xs font-mono text-muted-foreground whitespace-pre-wrap">
+                                            {generatedDesign.generatedPrompt}
+                                        </p>
+                                    </div>
+                                    <Button variant="outline" onClick={() => setGeneratedDesign(null)}>
+                                        Try Another Style
+                                    </Button>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
 
                 <TabsContent value="overview" className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -234,9 +319,16 @@ export function AnalysisResults({ analysis, ceilingHeight }: AnalysisResultsProp
                                 <CardContent>
                                     <ul className="space-y-2">
                                         {analysis.recommendations.furniture.map((item, index) => (
-                                            <li key={index} className="flex items-center gap-2">
-                                                <CheckCircle className="h-4 w-4 text-green-500" />
-                                                <span className="text-sm">{item}</span>
+                                            <li key={index} className="flex items-center justify-between gap-2 p-2 rounded hover:bg-muted/50 transition-colors">
+                                                <div className="flex items-center gap-2">
+                                                    <CheckCircle className="h-4 w-4 text-green-500" />
+                                                    <span className="text-sm capitalize">{item}</span>
+                                                </div>
+                                                {(item.toLowerCase().includes('sofa') || item.toLowerCase().includes('table') || item.toLowerCase().includes('bed') || item.toLowerCase().includes('shop')) && (
+                                                    <Button variant="link" size="sm" asChild className="h-auto p-0 text-primary">
+                                                        <a href="/shop">Shop Now</a>
+                                                    </Button>
+                                                )}
                                             </li>
                                         ))}
                                     </ul>

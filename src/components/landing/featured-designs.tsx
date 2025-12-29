@@ -14,19 +14,20 @@ export function FeaturedDesigns() {
         <h2 className="text-3xl font-bold tracking-tight text-center">Featured Designs</h2>
         <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {featuredDesigns.map(design => (
-            <div key={design.id} className="group overflow-hidden rounded-lg">
-              <Link href="/ar" className="block" prefetch={false}>
-                <Image
-                  src={design.imageUrl}
-                  alt={design.description}
-                  width={400}
-                  height={300}
-                  className="h-64 w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  data-ai-hint={design.imageHint}
-                />
-                <div className="p-4 bg-gray-50">
-                  <h3 className="font-semibold text-lg">{design.description}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{design.subtext}</p>
+            <div key={design.id} className="group overflow-hidden rounded-3xl bg-white/50 backdrop-blur-sm border border-white/20 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+              <Link href="/shop" className="block" prefetch={false}>
+                <div className="relative h-64 w-full overflow-hidden">
+                  <Image
+                    src={design.imageUrl}
+                    alt={design.description}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    data-ai-hint={design.imageHint}
+                  />
+                </div>
+                <div className="p-6">
+                  <h3 className="font-semibold text-xl mb-2">{design.description}</h3>
+                  <p className="text-sm text-gray-600">{design.subtext}</p>
                 </div>
               </Link>
             </div>
@@ -34,7 +35,7 @@ export function FeaturedDesigns() {
         </div>
         <div className="mt-12 text-center">
           <Link
-            href="/ar"
+            href="/shop"
             className="inline-flex items-center gap-2 font-medium text-primary hover:underline"
             prefetch={false}
           >

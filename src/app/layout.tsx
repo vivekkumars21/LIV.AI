@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { CartProvider } from '@/contexts/CartContext';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -11,7 +12,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'IntraKart - AI + AR Interior Design Platform',
+  title: {
+    default: 'IntraKart',
+    template: '%s | IntraKart'
+  },
   description:
     'Transform your home with intelligent design suggestions. Upload a room photo and get personalized furniture recommendations based on your space, style, and budget.',
   icons: {
@@ -37,9 +41,11 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} font-sans antialiased h-full flex flex-col`} suppressHydrationWarning>
         <AuthProvider>
-          {/* The header and footer are conditionally rendered in the page layouts */}
-          <main className="flex-1">{children}</main>
-          <Toaster />
+          <CartProvider>
+            {/* The header and footer are conditionally rendered in the page layouts */}
+            <main className="flex-1">{children}</main>
+            <Toaster />
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>

@@ -253,7 +253,7 @@ export class RoomAnalyzer {
     };
   }
 
-  private async analyzeFurniture(imageElement: HTMLImageElement) {
+  private async analyzeFurniture(imageElement: HTMLImageElement): Promise<{ detected: boolean; items: string[]; style: 'modern' | 'traditional' | 'mixed' | 'minimalist' | 'rustic' }> {
     if (!this.model) {
       return {
         detected: false,
@@ -269,10 +269,9 @@ export class RoomAnalyzer {
 
     const detectedItems = predictions
       .filter(p => furnitureClasses.includes(p.class) && p.score > 0.5)
-      .map(p => p.class);
+      .map(p => p.class as string);
 
-    // Deduplicate
-    const uniqueItems = Array.from(new Set(detectedItems));
+    const uniqueItems = Array.from(new Set(detectedItems)) as string[];
 
     return {
       detected: uniqueItems.length > 0,
@@ -346,12 +345,31 @@ export class RoomAnalyzer {
     }
 
     // Furniture based specific recommendations
-    if (analysis.existingFurniture.items.includes('bed')) {
-      recommendations.furniture.push('bedside tables', 'rug under bed');
+    const detectedItems = analysis.existingFurniture.items;
+    const isBlankRoom = !analysis.existingFurniture.detected || detectedItems.includes('No furniture detected');
+
+    if (isBlankRoom) {
+      // Suggest essentials for a blank canvas
+      if (analysis.space.size === 'small') {
+        recommendations.furniture.push('Compact Sofa', 'Wall Shelves', 'Folding Dining Table');
+        recommendations.style.push('Minimalist', 'Japandi');
+      } else {
+        recommendations.furniture.push('Sectional Sofa', 'Statement Armchair', 'Coffee Table', 'Area Rug');
+        recommendations.style.push('Modern', 'Contemporary');
+      }
+      recommendations.improvements.push('Room is a blank canvas - start with large furniture pieces first.');
+    } else {
+      // Existing logic for furnished rooms
+      if (detectedItems.includes('bed')) {
+        recommendations.furniture.push('Bedside Tables', 'Rug under bed');
+      }
+      if (detectedItems.includes('couch')) {
+        recommendations.furniture.push('Coffee Table', 'Throw Pillows', 'Floor Lamp');
+      }
     }
-    if (analysis.existingFurniture.items.includes('couch')) {
-      recommendations.furniture.push('coffee table', 'throw pillows');
-    }
+
+    // Suggest items from our shop catalog
+    recommendations.furniture.push('Check our Shop for matching items');
 
     return recommendations;
   }

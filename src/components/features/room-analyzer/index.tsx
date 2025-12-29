@@ -112,6 +112,8 @@ export function RoomAnalyzer({ onAnalysisComplete }: RoomAnalyzerProps) {
         <AnalysisResults
           analysis={analysis}
           ceilingHeight={ceilingHeight}
+          imageFile={selectedImage}
+          defaultTab="design"
         />
       )}
     </div>
