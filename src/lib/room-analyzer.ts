@@ -52,14 +52,16 @@ export class RoomAnalyzer {
     // Lazy initialization in analyzeRoom
   }
 
-  private async initializeModel() {
+  public async initializeModel() {
     if (this.model || this.isModelLoading) return;
 
     this.isModelLoading = true;
     try {
       // Load COCO-SSD model
       await tf.ready();
-      this.model = await cocoSsd.load();
+      this.model = await cocoSsd.load({
+        base: 'lite_mobilenet_v2' // Explicitly set the lightest model
+      });
       console.log('Room Analyzer model initialized');
     } catch (error) {
       console.error('Error initializing room analyzer model:', error);
@@ -81,7 +83,8 @@ export class RoomAnalyzer {
       }
 
       // Convert image to tensor
-      const imageElement = await this.fileToImageElement(imageFile);
+      const originalImage = await this.fileToImageElement(imageFile);
+      const imageElement = await this.resizeImage(originalImage);
       const tensor = tf.browser.fromPixels(imageElement);
 
       // Analyze different aspects of the room
@@ -117,6 +120,24 @@ export class RoomAnalyzer {
     });
   }
 
+  private async resizeImage(original: HTMLImageElement, maxDimension: number = 1024): Promise<HTMLImageElement> {
+    if (original.width <= maxDimension && original.height <= maxDimension) {
+      return original;
+    }
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const scale = Math.min(maxDimension / original.width, maxDimension / original.height);
+      canvas.width = original.width * scale;
+      canvas.height = original.height * scale;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(original, 0, 0, canvas.width, canvas.height);
+
+      const resized = new Image();
+      resized.onload = () => resolve(resized);
+      resized.src = canvas.toDataURL('image/jpeg', 0.8);
+    });
+  }
+
   private async analyzeWalls(tensor: tf.Tensor, imageElement: HTMLImageElement) {
     // Simple wall analysis based on image properties
     const canvas = document.createElement('canvas');
@@ -131,7 +152,8 @@ export class RoomAnalyzer {
     // Analyze vertical edges for wall detection
     const colorCounts: { [key: string]: number } = {};
 
-    for (let i = 0; i < pixels.length; i += 4) {
+    // Sample every 10th pixel for performance
+    for (let i = 0; i < pixels.length; i += 40) {
       const r = pixels[i];
       const g = pixels[i + 1];
       const b = pixels[i + 2];
@@ -171,7 +193,8 @@ export class RoomAnalyzer {
     let totalR = 0, totalG = 0, totalB = 0;
     let pixelCount = 0;
 
-    for (let i = 0; i < pixels.length; i += 4) {
+    // Sample every 10th pixel for performance
+    for (let i = 0; i < pixels.length; i += 40) {
       totalR += pixels[i];
       totalG += pixels[i + 1];
       totalB += pixels[i + 2];
@@ -202,7 +225,8 @@ export class RoomAnalyzer {
     let totalBrightness = 0;
     let pixelCount = 0;
 
-    for (let i = 0; i < pixels.length; i += 4) {
+    // Sample every 10th pixel for performance
+    for (let i = 0; i < pixels.length; i += 40) {
       const brightness = (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
       totalBrightness += brightness;
       pixelCount++;

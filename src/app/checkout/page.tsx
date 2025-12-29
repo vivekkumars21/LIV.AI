@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
@@ -12,11 +12,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
 export default function CheckoutPage() {
-    const { items, cartTotal, clearCart } = useCart();
+    const { items, cartTotal, clearCart, isInitialized } = useCart();
     const router = useRouter();
     const { toast } = useToast();
     const [isProcessing, setIsProcessing] = useState(false);
-
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -27,6 +26,12 @@ export default function CheckoutPage() {
         expiry: '12/25',
         cvc: '123'
     });
+
+    useEffect(() => {
+        if (isInitialized && items.length === 0) {
+            router.push('/shop');
+        }
+    }, [isInitialized, items, router]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -48,8 +53,8 @@ export default function CheckoutPage() {
         router.push('/checkout/success');
     };
 
-    if (items.length === 0) {
-        router.push('/shop');
+    // Show nothing while initializing or if redirecting
+    if (!isInitialized || items.length === 0) {
         return null;
     }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { roomAnalyzer, type RoomAnalysis } from '@/lib/room-analyzer';
 import { useToast } from '@/hooks/use-toast';
 import { ImageUploader } from './image-uploader';
@@ -20,6 +20,12 @@ export function RoomAnalyzer({ onAnalysisComplete }: RoomAnalyzerProps) {
   const [ceilingHeight, setCeilingHeight] = useState<number>(9);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Preload the model when component mounts
+    roomAnalyzer.initializeModel();
+  }, []);
+
 
   const handleImageUpload = useCallback((file: File) => {
     setSelectedImage(file);

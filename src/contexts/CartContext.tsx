@@ -16,6 +16,7 @@ interface CartContextType {
     clearCart: () => void;
     cartTotal: number;
     itemCount: number;
+    isInitialized: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -101,6 +102,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 clearCart,
                 cartTotal,
                 itemCount,
+                isInitialized,
             }}
         >
             {children}
