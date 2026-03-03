@@ -1,0 +1,156 @@
+# Advanced Monocular Metric Measurement System
+
+Python FastAPI backend running **ZoeDepth** (metric depth) + **YOLOv8-seg** (object detection/segmentation) + **user calibration**, integrated with the existing Next.js frontend. All local on RTX 4060 CUDA.
+
+## Architecture
+
+```mermaid
+graph LR
+    A["Room Image Upload<br/>(Next.js)"] --> B["FastAPI Backend<br/>:8000"]
+    B --> C["ZoeDepth<br/>(Metric Depth Map)"]
+    B --> D["YOLOv8-seg<br/>(Object Masks)"]
+    B --> E["EXIF Parser<br/>(Camera Intrinsics)"]
+    C --> F["Depth + Mask<br/>Fusion"]
+    D --> F
+    E --> F
+    F --> G["User Calibration<br/>(Known Reference)"]
+    G --> H["Pixel → Metre<br/>Conversion"]
+    H --> I["Metric Bounding Boxes<br/>+ Spatial Reasoning"]
+    I --> J["JSON Result<br/>→ Next.js UI"]
+```
+
+## Proposed Changes
+
+### Python Backend (`backend/`)
+
+#### [NEW] `backend/requirements.txt`
+
+```
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+python-multipart==0.0.9
+torch>=2.1.0
+torchvision>=0.16.0
+timm==1.0.3
+opencv-python-headless==4.9.0.80
+ultralytics==8.2.0
+Pillow>=10.0.0
+numpy>=1.24.0
+```
+
+#### [NEW] `backend/main.py`
+
+FastAPI app with CORS for `localhost:9002`. Endpoints:
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/analyze` | POST | Upload image → depth map + object detection + measurements |
+| `/api/calibrate` | POST | User provides 2 pixel points + real distance → returns `metre_per_pixel` scale |
+| `/api/placement` | POST | Spatial reasoning with calibrated measurements (reuses existing [evaluatePlacement](file:///d:/DE/studio/src/lib/spatial-reasoning.ts#226-337) logic ported to Python) |
+| `/api/health` | GET | Model load status + GPU info |
+
+#### [NEW] `backend/models/depth_estimator.py`
+
+- Loads **ZoeDepth** (`ZoeD_NK` indoor model)
+- CUDA-accelerated on RTX 4060
+- `estimate_depth(image: PIL.Image) → np.ndarray` — returns depth map in metres
+- Singleton pattern — model loaded once at startup
+
+#### [NEW] `backend/models/object_detector.py`
+
+- Loads **YOLOv8-seg** (`yolov8m-seg.pt`)
+- `detect_objects(image: PIL.Image) → list[DetectedObject]`
+- Each `DetectedObject` has: name, confidence, bbox (pixels), segmentation mask
+- Filters for indoor/furniture classes
+
+#### [NEW] `backend/services/measurement.py`
+
+Core measurement pipeline:
+
+1. Get depth map from ZoeDepth
+2. Get object masks from YOLO
+3. For each detected object:
+   - Extract depth values within mask → median depth
+   - Use `real_width = (pixel_width × avg_depth) / focal_length`
+   - Compute metric bounding box `{width_m, depth_m, height_m}`
+4. Apply user calibration scale if provided
+5. Return list of measured objects with positions + sizes in metres
+
+#### [NEW] `backend/services/calibration.py`
+
+- `calibrate(point1, point2, real_distance_m) → metre_per_pixel`
+- Stores calibration per session
+- Refines depth model output to absolute metric
+
+#### [NEW] `backend/services/spatial_engine.py`
+
+Port of the existing [spatial-reasoning.ts](file:///d:/DE/studio/src/lib/spatial-reasoning.ts) logic to Python:
+- AABB collision detection
+- 0.6m clearance enforcement
+- Grid-based optimal position search
+- Budget analysis with alternatives
+
+---
+
+### Next.js Frontend Changes
+
+#### [MODIFY] [room-analyzer.ts](file:///d:/DE/studio/src/lib/room-analyzer.ts)
+
+Add new functions that call the Python backend instead of TF.js:
+
+- `analyzeRoomAdvanced(imageFile: File)` → calls `POST /api/analyze`
+- `calibrateRoom(point1, point2, realDistance)` → calls `POST /api/calibrate`
+- `checkPlacement(input)` → calls `POST /api/placement`
+
+Keep the existing TF.js [analyzeRoom()](file:///d:/DE/studio/src/components/features/room-analyzer/index.tsx#41-81) as fallback.
+
+#### [NEW] [spatial-placement.tsx](file:///d:/DE/studio/src/components/features/room-analyzer/spatial-placement.tsx)
+
+Premium UI component with:
+
+1. **Calibration Tool** — canvas overlay where user clicks 2 points on a known reference (door frame, floor tile) and enters real distance. Shows guide lines.
+2. **Detected Objects Panel** — lists YOLO-detected objects with measured dimensions (metres), editable.
+3. **Product Picker** — dropdown from IntraKart catalog with auto-parsed dimensions.
+4. **2D Room Mini-Map** — canvas showing room boundary, all detected objects as coloured rectangles, and the suggested placement position.
+5. **Depth Map Visualiser** — shows the ZoeDepth heatmap overlay on the room image.
+6. **Result Card** — fit/no-fit, clearance, budget, reasoning.
+
+#### [MODIFY] [analysis-results.tsx](file:///d:/DE/studio/src/components/features/room-analyzer/analysis-results.tsx)
+
+Add **"Advanced Measurement"** tab that renders `<SpatialPlacement>` with the Python-powered analysis data.
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **First-time setup** requires downloading ~1.5GB of model weights (ZoeDepth + YOLOv8). This happens once on first run.
+
+> [!IMPORTANT]
+> **CUDA requirement**: The backend uses `torch.cuda` for RTX 4060 acceleration. CPU fallback is included but will be slower.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+
+```bash
+# 1. Python backend
+cd backend
+pip install -r requirements.txt
+python -m pytest tests/ -v
+
+# 2. Next.js build
+cd ..
+npm run build
+```
+
+### Manual Verification
+
+1. Start Python backend: `cd backend && uvicorn main:app --reload --port 8000`
+2. Start Next.js: `npm run dev` (port 9002)
+3. Upload a room image → verify depth map + object detection results appear
+4. Use calibration tool — mark a door frame, enter 2.1m → verify pixel-to-metre scale
+5. Select a product → "Check Placement" → verify spatial JSON result with measured room dimensions
+6. Test edge cases: very small room, fully occupied room, budget exceeded

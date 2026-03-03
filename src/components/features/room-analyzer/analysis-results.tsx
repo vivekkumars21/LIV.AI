@@ -21,6 +21,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { type RoomAnalysis } from '@/lib/room-analyzer';
+import { SpatialPlacement } from './spatial-placement';
 
 interface AnalysisResultsProps {
     analysis: RoomAnalysis;
@@ -67,12 +68,13 @@ export function AnalysisResults({ analysis, ceilingHeight, imageFile, defaultTab
             </Alert>
 
             <Tabs defaultValue={defaultTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="grid w-full grid-cols-6">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="details">Details</TabsTrigger>
                     <TabsTrigger value="recommendations">Suggestions</TabsTrigger>
                     <TabsTrigger value="colors">Colors</TabsTrigger>
                     <TabsTrigger value="design">AI Design</TabsTrigger>
+                    <TabsTrigger value="measurement">📐 Measure</TabsTrigger>
                 </TabsList>
 
                 {/* ... existing tabs content ... */}
@@ -401,6 +403,10 @@ export function AnalysisResults({ analysis, ceilingHeight, imageFile, defaultTab
                             </div>
                         </CardContent>
                     </Card>
+                </TabsContent>
+
+                <TabsContent value="measurement" className="space-y-4">
+                    <SpatialPlacement analysis={analysis} imageFile={imageFile} />
                 </TabsContent>
             </Tabs>
         </div>
