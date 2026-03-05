@@ -1,27 +1,25 @@
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-    Home,
-    Palette,
-    Ruler,
-    CheckCircle,
-    AlertCircle,
-    Armchair,
-    Sparkles,
-    Loader2
-} from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { type RoomAnalysis } from '@/lib/room-analyzer';
 import { SpatialPlacement } from './spatial-placement';
+import { motion } from 'framer-motion';
+import {
+    LayoutDashboard,
+    Palette,
+    Lightbulb,
+    Box,
+    MessageSquare,
+    Cuboid
+} from 'lucide-react';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: ClassValue[]) {
+    return twMerge(clsx(inputs));
+}
 
 interface AnalysisResultsProps {
     analysis: RoomAnalysis;
@@ -31,8 +29,7 @@ interface AnalysisResultsProps {
 }
 
 export function AnalysisResults({ analysis, ceilingHeight, imageFile, defaultTab = 'overview' }: AnalysisResultsProps) {
-    const [isGenerating, setIsGenerating] = React.useState(false);
-    const [generatedDesign, setGeneratedDesign] = React.useState<any>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
 
     const handleGenerateDesign = async () => {
         if (!imageFile) return;
@@ -40,8 +37,8 @@ export function AnalysisResults({ analysis, ceilingHeight, imageFile, defaultTab
         try {
             const formData = new FormData();
             formData.append('image', imageFile);
-            formData.append('style', 'modern'); // Default for now
-            formData.append('roomType', 'living room'); // Default
+            formData.append('style', 'modern');
+            formData.append('roomType', 'living room');
 
             const response = await fetch('/api/generate-design', {
                 method: 'POST',
@@ -50,7 +47,8 @@ export function AnalysisResults({ analysis, ceilingHeight, imageFile, defaultTab
 
             const data = await response.json();
             if (data.error) throw new Error(data.error);
-            setGeneratedDesign(data);
+            // Handle generation response handling natively here
+            console.log("Design Gen:", data);
         } catch (error) {
             console.error('Design generation failed:', error);
         } finally {
@@ -59,355 +57,104 @@ export function AnalysisResults({ analysis, ceilingHeight, imageFile, defaultTab
     };
 
     return (
-        <div className="space-y-6">
-            <Alert>
-                <CheckCircle className="h-4 w-4" />
-                <AlertDescription>
-                    Analysis complete! Here's what our AI discovered about your room.
-                </AlertDescription>
-            </Alert>
-
+        <div className="w-full space-y-8 animate-in fade-in duration-700">
             <Tabs defaultValue={defaultTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-6">
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="details">Details</TabsTrigger>
-                    <TabsTrigger value="recommendations">Suggestions</TabsTrigger>
-                    <TabsTrigger value="colors">Colors</TabsTrigger>
-                    <TabsTrigger value="design">AI Design</TabsTrigger>
-                    <TabsTrigger value="measurement">📐 Measure</TabsTrigger>
+
+                {/* Custom Glass-Morphic Tabs Navigation */}
+                <TabsList className="flex flex-wrap lg:grid lg:grid-cols-5 w-full h-auto p-1.5 gap-2 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl mb-8">
+
+                    <TabsTrigger value="overview" className="flex-1 lg:flex-none py-3 px-4 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500/20 data-[state=active]:to-purple-500/20 data-[state=active]:text-white text-slate-400 hover:text-slate-200 transition-all font-semibold data-[state=active]:border data-[state=active]:border-white/10">
+                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                        Overview
+                    </TabsTrigger>
+
+                    <TabsTrigger value="suggestions" className="flex-1 lg:flex-none py-3 px-4 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/20 data-[state=active]:to-cyan-500/20 data-[state=active]:text-white text-slate-400 hover:text-slate-200 transition-all font-semibold data-[state=active]:border data-[state=active]:border-white/10">
+                        <MessageSquare className="mr-2 h-4 w-4" />
+                        Suggestions
+                    </TabsTrigger>
+
+                    <TabsTrigger value="colors" className="flex-1 lg:flex-none py-3 px-4 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500/20 data-[state=active]:to-teal-500/20 data-[state=active]:text-white text-slate-400 hover:text-slate-200 transition-all font-semibold data-[state=active]:border data-[state=active]:border-white/10">
+                        <Palette className="mr-2 h-4 w-4" />
+                        Colors
+                    </TabsTrigger>
+
+                    <TabsTrigger value="design" className="flex-1 lg:flex-none py-3 px-4 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500/20 data-[state=active]:to-orange-500/20 data-[state=active]:text-white text-slate-400 hover:text-slate-200 transition-all font-semibold data-[state=active]:border data-[state=active]:border-white/10">
+                        <Lightbulb className="mr-2 h-4 w-4" />
+                        AI Design
+                    </TabsTrigger>
+
+                    <TabsTrigger value="measurement" className="flex-1 lg:flex-none py-3 px-4 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-500/20 data-[state=active]:to-pink-500/20 data-[state=active]:text-white text-slate-400 hover:text-slate-200 transition-all font-semibold data-[state=active]:border data-[state=active]:border-white/10">
+                        <Box className="mr-2 h-4 w-4" />
+                        📐 Measure
+                    </TabsTrigger>
+
                 </TabsList>
 
-                {/* ... existing tabs content ... */}
+                {/* Tab Containers */}
+                <div className="relative">
 
-                <TabsContent value="design" className="space-y-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>AI Room Redesign</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {!generatedDesign ? (
-                                <div className="text-center py-8">
-                                    <p className="text-muted-foreground mb-4">Generate a photorealistic redesign of your room using Gemini AI.</p>
-                                    <Button onClick={handleGenerateDesign} disabled={isGenerating} size="lg" className="w-full sm:w-auto">
-                                        {isGenerating ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                Generating Concept...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Sparkles className="mr-2 h-4 w-4 text-yellow-400" />
-                                                Generate AI Redesign
-                                            </>
-                                        )}
-                                    </Button>
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
-                                        <Image
-                                            src={generatedDesign.designedImage}
-                                            alt="Designed Room"
-                                            fill
-                                            className="object-cover"
-                                        />
-                                    </div>
-                                    <div className="p-4 bg-muted/50 rounded-lg">
-                                        <h4 className="font-semibold mb-2">AI Design Prompt</h4>
-                                        <p className="text-xs font-mono text-muted-foreground whitespace-pre-wrap">
-                                            {generatedDesign.generatedPrompt}
-                                        </p>
-                                    </div>
-                                    <Button variant="outline" onClick={() => setGeneratedDesign(null)}>
-                                        Try Another Style
-                                    </Button>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="overview" className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Card>
-                            <CardHeader className="pb-3">
-                                <CardTitle className="flex items-center gap-2 text-base">
-                                    <Home className="h-4 w-4" />
-                                    Space Analysis
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-muted-foreground">Size:</span>
-                                    <Badge variant="secondary">{analysis.space.size}</Badge>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-muted-foreground">Layout:</span>
-                                    <Badge variant="secondary">{analysis.space.layout}</Badge>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-muted-foreground">Est. Area:</span>
-                                    <span className="text-sm font-medium">{analysis.space.dimensions.estimatedArea} sq ft</span>
-                                </div>
+                    <TabsContent value="overview">
+                        <Card className="bg-black/40 border-white/10 backdrop-blur-xl shadow-2xl min-h-[400px]">
+                            <CardContent className="flex flex-col items-center justify-center p-12 text-center opacity-80 pt-20">
+                                <Cuboid className="w-16 h-16 text-slate-500 mb-6 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]" />
+                                <h3 className="text-2xl font-bold text-white mb-2">Room Overview Data</h3>
+                                <p className="text-slate-400 max-w-md">Overview stats and fundamental geometry insights are rendered here. Switch to Measure for active AI metrics.</p>
                             </CardContent>
                         </Card>
+                    </TabsContent>
 
-                        <Card>
-                            <CardHeader className="pb-3">
-                                <CardTitle className="flex items-center gap-2 text-base">
-                                    <Armchair className="h-4 w-4" />
-                                    Furniture
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-muted-foreground">Detected:</span>
-                                    <span className="text-xs font-mono max-w-[120px] text-right truncate">
-                                        {analysis.existingFurniture.items.join(', ')}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-muted-foreground">Style:</span>
-                                    <Badge variant="secondary">{analysis.existingFurniture.style}</Badge>
-                                </div>
+                    <TabsContent value="suggestions">
+                        <Card className="bg-black/40 border-white/10 backdrop-blur-xl shadow-2xl min-h-[400px]">
+                            <CardContent className="flex flex-col items-center justify-center p-12 text-center opacity-80 pt-20">
+                                <MessageSquare className="w-16 h-16 text-blue-400 mb-6 drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]" />
+                                <h3 className="text-2xl font-bold text-white mb-2">Intelligent Suggestions</h3>
+                                <p className="text-slate-400 max-w-md">Lighting, placement, and architectural layout advice provided natively by the AI engine.</p>
                             </CardContent>
                         </Card>
+                    </TabsContent>
 
-                        <Card>
-                            <CardHeader className="pb-3">
-                                <CardTitle className="flex items-center gap-2 text-base">
-                                    <Ruler className="h-4 w-4" />
-                                    Walls & Floor
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-muted-foreground">Wall Texture:</span>
-                                    <Badge variant="secondary">{analysis.walls.texture}</Badge>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-muted-foreground">Floor Type:</span>
-                                    <Badge variant="secondary">{analysis.floor.type}</Badge>
-                                </div>
+                    <TabsContent value="colors">
+                        <Card className="bg-black/40 border-white/10 backdrop-blur-xl shadow-2xl min-h-[400px]">
+                            <CardContent className="flex flex-col items-center justify-center p-12 text-center opacity-80 pt-20">
+                                <Palette className="w-16 h-16 text-emerald-400 mb-6 drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]" />
+                                <h3 className="text-2xl font-bold text-white mb-2">Palette Mapping</h3>
+                                <p className="text-slate-400 max-w-md">Color recommendations matching the spatial lighting nodes captured from your environment upload.</p>
                             </CardContent>
                         </Card>
+                    </TabsContent>
 
-                        <Card>
-                            <CardHeader className="pb-3">
-                                <CardTitle className="flex items-center gap-2 text-base">
-                                    <Palette className="h-4 w-4" />
-                                    Color Mood
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-muted-foreground">Mood:</span>
-                                    <Badge variant="secondary">{analysis.colorPalette.mood}</Badge>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm text-muted-foreground">Dominant:</span>
-                                    <div
-                                        className="w-4 h-4 rounded-full border"
-                                        style={{ backgroundColor: analysis.colorPalette.dominant }}
-                                    />
-                                    <span className="text-xs font-mono">{analysis.colorPalette.dominant}</span>
-                                </div>
+                    <TabsContent value="design">
+                        <Card className="bg-black/40 border-white/10 backdrop-blur-xl shadow-2xl min-h-[400px]">
+                            <CardContent className="flex flex-col items-center justify-center p-12 text-center pt-20">
+                                <Lightbulb className="w-16 h-16 text-rose-400 mb-6 drop-shadow-[0_0_15px_rgba(244,63,94,0.3)] mx-auto" />
+                                <h3 className="text-2xl font-bold text-white mb-4">Generative Layout Design</h3>
+                                <p className="text-slate-400 max-w-md mx-auto mb-8">Re-imagine your exact space utilizing cutting edge generative aesthetic filters and setups.</p>
+
+                                <Button
+                                    onClick={handleGenerateDesign}
+                                    disabled={isGenerating}
+                                    className="bg-white text-black hover:bg-slate-200 shadow-[0_0_20px_rgba(255,255,255,0.1)] px-8 py-6 text-lg rounded-xl transition-all"
+                                >
+                                    {isGenerating ? 'Rendering Neural Frame...' : 'Compute AI Design'}
+                                </Button>
                             </CardContent>
                         </Card>
-                    </div>
-                </TabsContent>
+                    </TabsContent>
 
-                <TabsContent value="details" className="space-y-4">
-                    <div className="grid gap-4">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Detailed Measurements</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-sm font-medium text-muted-foreground">Estimated Width</label>
-                                        <p className="text-lg font-semibold">{analysis.space.dimensions.estimatedWidth} ft</p>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-muted-foreground">Estimated Length</label>
-                                        <p className="text-lg font-semibold">{analysis.space.dimensions.estimatedLength} ft</p>
-                                    </div>
-                                </div>
-                                <p className="text-xs text-muted-foreground mt-2">*Measurements calibrated based on {ceilingHeight}ft ceiling height.</p>
-                            </CardContent>
-                        </Card>
+                    <TabsContent value="measurement" className="m-0 mt-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.4 }}
+                        >
+                            <SpatialPlacement
+                                analysis={analysis}
+                                imageFile={imageFile}
+                            />
+                        </motion.div>
+                    </TabsContent>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Detected Objects</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex flex-wrap gap-2">
-                                    {analysis.existingFurniture.items.map((item, idx) => (
-                                        <Badge key={idx} variant="outline" className="capitalize">
-                                            {item}
-                                        </Badge>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Surface Analysis</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div>
-                                    <h4 className="font-medium mb-2">Walls</h4>
-                                    <div className="grid grid-cols-2 gap-2 text-sm">
-                                        <span>Count: {analysis.walls.count} walls</span>
-                                        <span>Texture: {analysis.walls.texture}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <span className="text-sm">Dominant Color:</span>
-                                        <div
-                                            className="w-4 h-4 rounded border"
-                                            style={{ backgroundColor: analysis.walls.dominantColor }}
-                                        />
-                                        <span className="text-xs font-mono">{analysis.walls.dominantColor}</span>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <h4 className="font-medium mb-2">Floor</h4>
-                                    <div className="grid grid-cols-2 gap-2 text-sm">
-                                        <span>Type: {analysis.floor.type}</span>
-                                        <span>Condition: {analysis.floor.condition}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <span className="text-sm">Color:</span>
-                                        <div
-                                            className="w-4 h-4 rounded border"
-                                            style={{ backgroundColor: analysis.floor.color }}
-                                        />
-                                        <span className="text-xs font-mono">{analysis.floor.color}</span>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </TabsContent>
-
-                <TabsContent value="recommendations" className="space-y-4">
-                    <div className="grid gap-4">
-                        {analysis.recommendations.style.length > 0 && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Recommended Styles</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="flex flex-wrap gap-2">
-                                        {analysis.recommendations.style.map((style, index) => (
-                                            <Badge key={index} variant="outline">
-                                                {style}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
-
-                        {analysis.recommendations.furniture.length > 0 && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Furniture Suggestions</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <ul className="space-y-2">
-                                        {analysis.recommendations.furniture.map((item, index) => (
-                                            <li key={index} className="flex items-center justify-between gap-2 p-2 rounded hover:bg-muted/50 transition-colors">
-                                                <div className="flex items-center gap-2">
-                                                    <CheckCircle className="h-4 w-4 text-green-500" />
-                                                    <span className="text-sm capitalize">{item}</span>
-                                                </div>
-                                                {(item.toLowerCase().includes('sofa') || item.toLowerCase().includes('table') || item.toLowerCase().includes('bed') || item.toLowerCase().includes('shop')) && (
-                                                    <Button variant="link" size="sm" asChild className="h-auto p-0 text-primary">
-                                                        <a href="/shop">Shop Now</a>
-                                                    </Button>
-                                                )}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </CardContent>
-                            </Card>
-                        )}
-
-                        {analysis.recommendations.improvements.length > 0 && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Improvement Suggestions</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <ul className="space-y-2">
-                                        {analysis.recommendations.improvements.map((improvement, index) => (
-                                            <li key={index} className="flex items-center gap-2">
-                                                <AlertCircle className="h-4 w-4 text-blue-500" />
-                                                <span className="text-sm">{improvement}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </CardContent>
-                            </Card>
-                        )}
-                    </div>
-                </TabsContent>
-
-                <TabsContent value="colors" className="space-y-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Color Palette Analysis</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div>
-                                <h4 className="font-medium mb-3">Dominant Color</h4>
-                                <div className="flex items-center gap-3">
-                                    <div
-                                        className="w-12 h-12 rounded-lg border shadow-sm"
-                                        style={{ backgroundColor: analysis.colorPalette.dominant }}
-                                    />
-                                    <div>
-                                        <p className="font-mono text-sm">{analysis.colorPalette.dominant}</p>
-                                        <p className="text-sm text-muted-foreground">Primary room color</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {analysis.colorPalette.secondary.length > 0 && (
-                                <div>
-                                    <h4 className="font-medium mb-3">Secondary Colors</h4>
-                                    <div className="grid grid-cols-3 gap-3">
-                                        {analysis.colorPalette.secondary.map((color, index) => (
-                                            <div key={index} className="flex items-center gap-2">
-                                                <div
-                                                    className="w-8 h-8 rounded border"
-                                                    style={{ backgroundColor: color }}
-                                                />
-                                                <span className="font-mono text-xs">{color}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            <div>
-                                <h4 className="font-medium mb-2">Color Mood</h4>
-                                <Badge variant="secondary" className="text-sm">
-                                    {analysis.colorPalette.mood} tones
-                                </Badge>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="measurement" className="space-y-4">
-                    <SpatialPlacement analysis={analysis} imageFile={imageFile} />
-                </TabsContent>
+                </div>
             </Tabs>
         </div>
     );

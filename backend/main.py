@@ -14,7 +14,7 @@ from typing import Optional
 
 import numpy as np
 from PIL import Image
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -30,6 +30,23 @@ from backend.services.spatial_engine import (
     ExistingObject,
     SelectedObject,
 )
+from backend.services.color_analyzer import analyze_colors
+from backend.services.budget_calculator import calculate_budget, get_available_project_types
+
+# DB imports
+from sqlalchemy.orm import Session
+from backend.database import SessionLocal, engine, Base
+from backend.models.professional import DBProfessional, DBProfessionalReview
+
+# Initialize DB
+Base.metadata.create_all(bind=engine)
+
+def get_db_session():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 # ─── Logging ─────────────────────────────────────────────────
 
@@ -44,17 +61,12 @@ logger = logging.getLogger("intrakart-backend")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Pre-load models on startup."""
+    """Server startup — models load lazily on first request."""
     logger.info("=" * 60)
     logger.info("IntraKart Measurement Backend starting...")
     logger.info("=" * 60)
-
-    # Load models in background thread to not block startup
-    loop = asyncio.get_event_loop()
-    await loop.run_in_executor(None, depth_estimator.load_model)
-    await loop.run_in_executor(None, object_detector.load_model)
-
-    logger.info("All models loaded. Server ready.")
+    logger.info("Models will load lazily on first /api/analyze request.")
+    logger.info("Server ready to accept requests.")
     yield
     logger.info("Server shutting down.")
 
@@ -99,6 +111,30 @@ class PlacementRequest(BaseModel):
     budget: float = 100000
 
 
+class BudgetRequest(BaseModel):
+    area_sqft: float
+    project_type: str = "painting"
+    quality_tier: str = "standard"
+    city_tier: str = "tier_2"
+
+class ProfessionalCreate(BaseModel):
+    name: str
+    profession: str
+    city: str
+    state: str
+    phone: str
+    email: Optional[str] = None
+    visiting_charge_inr: int = 0
+    rate_per_sqft_inr: int = 0
+    experience_years: int = 0
+    bio: Optional[str] = ""
+
+class ReviewCreate(BaseModel):
+    reviewer_name: str
+    rating: int
+    comment: Optional[str] = ""
+
+
 # ─── Endpoints ───────────────────────────────────────────────
 
 
@@ -110,7 +146,7 @@ async def health_check():
         gpu_info = {
             "name": torch.cuda.get_device_name(0),
             "memory_total_gb": round(
-                torch.cuda.get_device_properties(0).total_mem / (1024**3), 1
+                torch.cuda.get_device_properties(0).total_memory / (1024**3), 1
             ),
             "memory_used_gb": round(torch.cuda.memory_allocated(0) / (1024**3), 2),
         }
@@ -245,6 +281,136 @@ async def check_placement(request: PlacementRequest):
 
     except (KeyError, TypeError) as e:
         raise HTTPException(status_code=400, detail=f"Invalid input: {e}")
+
+
+@app.post("/api/colors")
+async def predict_colors(
+    image: UploadFile = File(...),
+):
+    """
+    Upload a room image → get dominant color palette, wall/floor colors,
+    recommended palette, and mood classification.
+    """
+    if not image.content_type or not image.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+
+    contents = await image.read()
+    pil_image = Image.open(io.BytesIO(contents))
+
+    logger.info(f"Color analysis: {pil_image.size[0]}x{pil_image.size[1]}")
+
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(None, lambda: analyze_colors(pil_image))
+
+    return result.to_dict()
+
+
+@app.post("/api/budget")
+async def compute_budget(request: BudgetRequest):
+    """
+    Calculate renovation budget based on area, project type, quality tier, and city tier.
+    Returns detailed breakdown with material + labor costs, GST, and savings tips.
+    """
+    try:
+        result = calculate_budget(
+            area_sqft=request.area_sqft,
+            project_type=request.project_type,
+            quality_tier=request.quality_tier,
+            city_tier=request.city_tier,
+        )
+        return result.to_dict()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/budget/project-types")
+async def list_project_types():
+    """Return all available project types with descriptions and tiers."""
+    return get_available_project_types()
+
+
+# ─── Professionals Marketplace Endpoints ─────────────────────
+
+@app.post("/api/professionals")
+def register_professional(prof: ProfessionalCreate, db: Session = Depends(get_db_session)):
+    db_prof = DBProfessional(**prof.dict())
+    db.add(db_prof)
+    db.commit()
+    db.refresh(db_prof)
+    res = {column.name: getattr(db_prof, column.name) for column in db_prof.__table__.columns}
+    res["id"] = str(res["id"])
+    return res
+
+@app.get("/api/professionals")
+def get_professionals(city: str, profession: Optional[str] = None, sort_by: str = "rating", db: Session = Depends(get_db_session)):
+    query = db.query(DBProfessional).filter(DBProfessional.city.ilike(f"%{city.strip()}%"))
+    if profession:
+        query = query.filter(DBProfessional.profession == profession)
+        
+    if sort_by == "rating":
+        query = query.order_by(DBProfessional.rating.desc())
+    elif sort_by == "price_low":
+        query = query.order_by(DBProfessional.visiting_charge_inr.asc())
+    elif sort_by == "price_high":
+        query = query.order_by(DBProfessional.visiting_charge_inr.desc())
+    elif sort_by == "experience":
+        query = query.order_by(DBProfessional.experience_years.desc())
+        
+    results = []
+    for p in query.all():
+        res = {column.name: getattr(p, column.name) for column in p.__table__.columns}
+        res["id"] = str(res["id"])
+        results.append(res)
+    return results
+
+@app.get("/api/professionals/cities/list")
+def get_cities(db: Session = Depends(get_db_session)):
+    cities = db.query(DBProfessional.city).distinct().all()
+    return [c[0] for c in cities if c[0]]
+
+@app.get("/api/professionals/{prof_id}")
+def get_professional(prof_id: str, db: Session = Depends(get_db_session)):
+    prof = db.query(DBProfessional).filter(DBProfessional.id == prof_id).first()
+    if not prof:
+        raise HTTPException(status_code=404, detail="Professional not found")
+    res = {column.name: getattr(prof, column.name) for column in prof.__table__.columns}
+    res["id"] = str(res["id"])
+    return res
+
+@app.post("/api/professionals/{prof_id}/reviews")
+def add_review(prof_id: str, review: ReviewCreate, db: Session = Depends(get_db_session)):
+    prof = db.query(DBProfessional).filter(DBProfessional.id == prof_id).first()
+    if not prof:
+        raise HTTPException(status_code=404, detail="Professional not found")
+        
+    db_review = DBProfessionalReview(
+        professional_id=prof_id,
+        reviewer_name=review.reviewer_name,
+        rating=review.rating,
+        comment=review.comment
+    )
+    db.add(db_review)
+    
+    prof.review_count += 1
+    prof.rating = ((float(prof.rating) * (prof.review_count - 1)) + review.rating) / prof.review_count
+    
+    db.commit()
+    db.refresh(db_review)
+    res = {column.name: getattr(db_review, column.name) for column in db_review.__table__.columns}
+    res["id"] = str(res["id"])
+    res["professional_id"] = str(res["professional_id"])
+    return res
+
+@app.get("/api/professionals/{prof_id}/reviews")
+def get_reviews(prof_id: str, db: Session = Depends(get_db_session)):
+    reviews = db.query(DBProfessionalReview).filter(DBProfessionalReview.professional_id == prof_id).order_by(DBProfessionalReview.created_at.desc()).all()
+    results = []
+    for r in reviews:
+        res = {column.name: getattr(r, column.name) for column in r.__table__.columns}
+        res["id"] = str(res["id"])
+        res["professional_id"] = str(res["professional_id"])
+        results.append(res)
+    return results
 
 
 # ─── Helpers ─────────────────────────────────────────────────

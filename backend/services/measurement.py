@@ -69,6 +69,25 @@ class RoomMeasurement:
     # Image dimensions
     image_width: int
     image_height: int
+    # Computed area and confidence
+    confidence: float = 0.0  # 0-1, based on depth map quality
+
+    @property
+    def room_area_sqm(self) -> float:
+        return self.room_width * self.room_length
+
+    @property
+    def room_area_sqft(self) -> float:
+        return self.room_area_sqm * 10.764
+
+    @property
+    def wall_area_sqm(self) -> float:
+        perimeter = 2 * (self.room_width + self.room_length)
+        return perimeter * self.room_height
+
+    @property
+    def wall_area_sqft(self) -> float:
+        return self.wall_area_sqm * 10.764
 
     def to_dict(self) -> dict:
         return {
@@ -76,11 +95,16 @@ class RoomMeasurement:
                 "width": round(self.room_width, 2),
                 "length": round(self.room_length, 2),
                 "height": round(self.room_height, 2),
+                "area_sqm": round(self.room_area_sqm, 1),
+                "area_sqft": round(self.room_area_sqft, 1),
+                "wall_area_sqm": round(self.wall_area_sqm, 1),
+                "wall_area_sqft": round(self.wall_area_sqft, 1),
             },
             "objects": [obj.to_dict() for obj in self.objects],
             "scale": round(self.scale, 6),
             "image_width": self.image_width,
             "image_height": self.image_height,
+            "confidence": round(self.confidence, 2),
         }
 
 
@@ -246,6 +270,12 @@ def measure_objects(
     # Compute scale
     scale = room_width / img_w if img_w > 0 else 0.001
 
+    # Compute confidence based on depth map variance
+    depth_variance = float(np.var(depth_map))
+    # Low variance (uniform depth) = possibly bad scan, high variance = good 3D info
+    # Normalize: variance > 2.0 → high confidence, < 0.3 → low
+    confidence = min(1.0, max(0.0, (depth_variance - 0.1) / 2.5))
+
     return RoomMeasurement(
         room_width=round(room_width, 2),
         room_length=round(room_length, 2),
@@ -254,6 +284,7 @@ def measure_objects(
         scale=scale,
         image_width=img_w,
         image_height=img_h,
+        confidence=round(confidence, 2),
     )
 
 
