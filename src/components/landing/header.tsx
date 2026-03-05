@@ -30,14 +30,17 @@ export function Header() {
             <Link href="/room-analyzer" className="hover:text-primary" prefetch={false}>
               Room Analyzer
             </Link>
+            <Link href="/room-3d" className="hover:text-primary font-semibold text-indigo-400" prefetch={false}>
+              3D Walkthrough
+            </Link>
             <Link href="/ar" className="hover:text-primary" prefetch={false}>
               AR View
             </Link>
             <Link href="/shop" className="hover:text-primary" prefetch={false}>
               Shop
             </Link>
-            <Link href="#" className="hover:text-primary" prefetch={false}>
-              Inspiration
+            <Link href="/professionals" className="hover:text-primary" prefetch={false}>
+              Professionals
             </Link>
           </nav>
         </div>

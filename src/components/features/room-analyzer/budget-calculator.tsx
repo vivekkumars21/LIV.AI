@@ -122,12 +122,12 @@ export default function BudgetCalculator({ initialAreaSqft }: { initialAreaSqft?
     }, [areaSqft, projectType, qualityTier, cityTier]);
 
     return (
-        <div className="bg-gray-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 space-y-5">
-            <h3 className="text-white font-semibold text-lg flex items-center gap-2">💰 Budget Calculator</h3>
+        <div className="bg-white/40 backdrop-blur-md border border-white/20 rounded-3xl p-6 space-y-5 shadow-sm">
+            <h3 className="font-semibold text-lg flex items-center gap-2">💰 Budget Calculator</h3>
 
             {/* Area Input */}
             <div>
-                <label className="text-gray-400 text-xs uppercase tracking-wider mb-2 block">Room Area (sq ft)</label>
+                <label className="text-muted-foreground text-xs uppercase tracking-wider mb-2 block">Room Area (sq ft)</label>
                 <div className="flex items-center gap-3">
                     <input
                         type="range"
@@ -136,29 +136,29 @@ export default function BudgetCalculator({ initialAreaSqft }: { initialAreaSqft?
                         step="10"
                         value={areaSqft}
                         onChange={(e) => setAreaSqft(parseInt(e.target.value))}
-                        className="flex-1 accent-indigo-500 h-2"
+                        className="flex-1 accent-primary h-2"
                     />
                     <input
                         type="number"
                         value={areaSqft}
                         onChange={(e) => setAreaSqft(parseInt(e.target.value) || 0)}
-                        className="w-24 bg-gray-800/80 border border-white/10 rounded-xl px-3 py-2 text-white text-center text-sm focus:outline-none focus:border-indigo-500/50"
+                        className="w-24 bg-white/50 backdrop-blur-sm border border-white/20 rounded-xl px-3 py-2 text-center text-sm focus:outline-none focus:border-primary/50"
                     />
-                    <span className="text-gray-500 text-sm">sq ft</span>
+                    <span className="text-muted-foreground text-sm">sq ft</span>
                 </div>
             </div>
 
             {/* Project Type */}
             <div>
-                <label className="text-gray-400 text-xs uppercase tracking-wider mb-2 block">Project Type</label>
+                <label className="text-muted-foreground text-xs uppercase tracking-wider mb-2 block">Project Type</label>
                 <div className="grid grid-cols-3 gap-2">
                     {PROJECT_TYPES.map((pt) => (
                         <button
                             key={pt.id}
                             onClick={() => setProjectType(pt.id)}
                             className={`py-2.5 px-3 rounded-xl text-xs font-medium transition-all border ${projectType === pt.id
-                                    ? 'bg-indigo-600/30 border-indigo-500/50 text-indigo-300'
-                                    : 'bg-gray-800/50 border-white/5 text-gray-400 hover:border-white/15'
+                                    ? 'bg-white/80 border-white/40 shadow-sm'
+                                    : 'bg-white/20 border-white/10 hover:border-white/20'
                                 }`}
                         >
                             {pt.label}
@@ -169,15 +169,15 @@ export default function BudgetCalculator({ initialAreaSqft }: { initialAreaSqft?
 
             {/* Quality Tier */}
             <div>
-                <label className="text-gray-400 text-xs uppercase tracking-wider mb-2 block">Quality</label>
+                <label className="text-muted-foreground text-xs uppercase tracking-wider mb-2 block">Quality</label>
                 <div className="flex gap-2">
                     {QUALITY_TIERS.map((qt) => (
                         <button
                             key={qt.id}
                             onClick={() => setQualityTier(qt.id)}
                             className={`flex-1 py-2.5 rounded-xl text-xs font-medium transition-all border ${qualityTier === qt.id
-                                    ? `bg-gradient-to-r ${qt.color} border-transparent text-white shadow-lg`
-                                    : 'bg-gray-800/50 border-white/5 text-gray-400 hover:border-white/15'
+                                    ? 'bg-white/80 border-white/40 shadow-sm'
+                                    : 'bg-white/20 border-white/10 hover:border-white/20'
                                 }`}
                         >
                             {qt.label}
@@ -188,11 +188,11 @@ export default function BudgetCalculator({ initialAreaSqft }: { initialAreaSqft?
 
             {/* City Tier */}
             <div>
-                <label className="text-gray-400 text-xs uppercase tracking-wider mb-2 block">City Tier</label>
+                <label className="text-muted-foreground text-xs uppercase tracking-wider mb-2 block">City Tier</label>
                 <select
                     value={cityTier}
                     onChange={(e) => setCityTier(e.target.value)}
-                    className="w-full bg-gray-800/80 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500/50"
+                    className="w-full bg-white/50 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50"
                 >
                     {CITY_TIERS.map((ct) => (
                         <option key={ct.id} value={ct.id}>{ct.label} — {ct.multiplier}</option>
@@ -202,53 +202,53 @@ export default function BudgetCalculator({ initialAreaSqft }: { initialAreaSqft?
 
             {/* Error */}
             {error && (
-                <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm">{error}</div>
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm">{error}</div>
             )}
 
             {/* Results */}
             {result && !error && (
                 <div className="space-y-4 pt-2">
                     {/* Grand Total */}
-                    <div className="bg-gradient-to-r from-indigo-600/20 to-purple-600/20 border border-indigo-500/30 rounded-2xl p-5 text-center">
-                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Estimated Total (incl. 18% GST)</p>
-                        <p className="text-3xl font-bold text-white">
+                    <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-2xl p-5 text-center">
+                        <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Estimated Total (incl. 18% GST)</p>
+                        <p className="text-3xl font-bold">
                             <AnimatedNumber value={result.grand_total} />
                         </p>
-                        <p className="text-gray-400 text-xs mt-1">
+                        <p className="text-muted-foreground text-xs mt-1">
                             Range: {formatINR(result.price_range.min)} — {formatINR(result.price_range.max)}
                         </p>
                     </div>
 
                     {/* Cost Breakdown */}
                     <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-gray-800/50 rounded-xl p-3 border border-white/5 text-center">
-                            <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-1">Material</p>
-                            <p className="text-white font-semibold text-sm">{formatINR(result.material_cost)}</p>
+                        <div className="bg-white/30 backdrop-blur-sm rounded-xl p-3 border border-white/20 text-center">
+                            <p className="text-muted-foreground text-[10px] uppercase tracking-wider mb-1">Material</p>
+                            <p className="font-semibold text-sm">{formatINR(result.material_cost)}</p>
                         </div>
-                        <div className="bg-gray-800/50 rounded-xl p-3 border border-white/5 text-center">
-                            <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-1">Labor</p>
-                            <p className="text-white font-semibold text-sm">{formatINR(result.labor_cost)}</p>
+                        <div className="bg-white/30 backdrop-blur-sm rounded-xl p-3 border border-white/20 text-center">
+                            <p className="text-muted-foreground text-[10px] uppercase tracking-wider mb-1">Labor</p>
+                            <p className="font-semibold text-sm">{formatINR(result.labor_cost)}</p>
                         </div>
-                        <div className="bg-gray-800/50 rounded-xl p-3 border border-white/5 text-center">
-                            <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-1">GST 18%</p>
-                            <p className="text-white font-semibold text-sm">{formatINR(result.gst_18_percent)}</p>
+                        <div className="bg-white/30 backdrop-blur-sm rounded-xl p-3 border border-white/20 text-center">
+                            <p className="text-muted-foreground text-[10px] uppercase tracking-wider mb-1">GST 18%</p>
+                            <p className="font-semibold text-sm">{formatINR(result.gst_18_percent)}</p>
                         </div>
                     </div>
 
                     {/* Description */}
                     {result.breakdown.length > 0 && (
-                        <div className="bg-gray-800/30 rounded-xl p-3 border border-white/5">
-                            <p className="text-gray-300 text-sm">{result.breakdown[0].description}</p>
+                        <div className="bg-white/30 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                            <p className="text-sm">{result.breakdown[0].description}</p>
                         </div>
                     )}
 
                     {/* Savings Tips */}
                     {result.savings_tips.length > 0 && (
                         <div>
-                            <p className="text-gray-400 text-xs uppercase tracking-wider mb-2">💡 Savings Tips</p>
+                            <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">💡 Savings Tips</p>
                             <div className="space-y-2">
                                 {result.savings_tips.map((tip, i) => (
-                                    <div key={i} className="bg-emerald-500/5 border border-emerald-500/15 rounded-xl px-4 py-2.5 text-emerald-300 text-xs">
+                                    <div key={i} className="bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-500/20 rounded-xl px-4 py-2.5 text-green-800 dark:text-green-300 text-xs">
                                         {tip}
                                     </div>
                                 ))}
@@ -261,8 +261,8 @@ export default function BudgetCalculator({ initialAreaSqft }: { initialAreaSqft?
             {/* Loading */}
             {loading && !result && (
                 <div className="text-center py-6">
-                    <div className="animate-spin h-8 w-8 border-2 border-indigo-500 border-t-transparent rounded-full mx-auto mb-3" />
-                    <p className="text-gray-400 text-sm">Calculating budget...</p>
+                    <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3" />
+                    <p className="text-muted-foreground text-sm">Calculating budget...</p>
                 </div>
             )}
         </div>

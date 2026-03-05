@@ -32,11 +32,13 @@ from backend.services.spatial_engine import (
 )
 from backend.services.color_analyzer import analyze_colors
 from backend.services.budget_calculator import calculate_budget, get_available_project_types
+from backend.services.room_reconstructor import reconstruct_room
 
 # DB imports
 from sqlalchemy.orm import Session
 from backend.database import SessionLocal, engine, Base
 from backend.models.professional import DBProfessional, DBProfessionalReview
+from backend.models.project import DBProject
 
 # Initialize DB
 Base.metadata.create_all(bind=engine)
@@ -135,6 +137,22 @@ class ReviewCreate(BaseModel):
     comment: Optional[str] = ""
 
 
+class ProjectCreate(BaseModel):
+    name: str = "Untitled Project"
+    theme: str = "modern"
+    room_data: dict
+    furniture_data: list[dict] = []
+    notes: Optional[str] = ""
+
+
+class ProjectUpdate(BaseModel):
+    name: Optional[str] = None
+    theme: Optional[str] = None
+    room_data: Optional[dict] = None
+    furniture_data: Optional[list[dict]] = None
+    notes: Optional[str] = None
+
+
 # ─── Endpoints ───────────────────────────────────────────────
 
 
@@ -220,6 +238,70 @@ async def analyze_room(
         "detection_overlay": f"data:image/jpeg;base64,{overlay_base64}",
         "calibrated": cal is not None,
     }
+
+
+class ReconstructRequest(BaseModel):
+    ceiling_height_m: float = 2.8
+    include_point_cloud: bool = True
+    point_cloud_density: int = 6
+
+
+@app.post("/api/reconstruct")
+async def reconstruct_room_endpoint(
+    image: UploadFile = File(...),
+    ceiling_height_m: float = Form(2.8),
+    include_point_cloud: bool = Form(True),
+    point_cloud_density: int = Form(6),
+):
+    """
+    Upload a room image → get 3D room reconstruction data.
+
+    Returns:
+        - Room mesh geometry (floor, walls, ceiling vertices)
+        - 3D point cloud (subsampled)
+        - Detected objects with 3D positions
+        - Camera spawn position
+    """
+    if not image.content_type or not image.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+
+    contents = await image.read()
+    pil_image = Image.open(io.BytesIO(contents))
+
+    logger.info(f"Reconstructing room: {pil_image.size[0]}x{pil_image.size[1]}")
+
+    loop = asyncio.get_event_loop()
+    mesh = await loop.run_in_executor(
+        None,
+        lambda: reconstruct_room(
+            pil_image,
+            ceiling_height_m=ceiling_height_m,
+            include_point_cloud=include_point_cloud,
+            point_cloud_density=point_cloud_density,
+        ),
+    )
+
+    # Also generate depth heatmap and room texture as base64
+    depth_map = await loop.run_in_executor(
+        None, lambda: depth_estimator.estimate_depth(pil_image)
+    )
+    depth_colormap = depth_estimator.get_depth_colormap(depth_map)
+    depth_img = Image.fromarray(depth_colormap)
+
+    buf = io.BytesIO()
+    depth_img.save(buf, format="JPEG", quality=80)
+    depth_base64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+
+    # Room image as texture
+    buf2 = io.BytesIO()
+    pil_image.save(buf2, format="JPEG", quality=85)
+    texture_base64 = base64.b64encode(buf2.getvalue()).decode("utf-8")
+
+    result = mesh.to_dict()
+    result["depth_map"] = f"data:image/jpeg;base64,{depth_base64}"
+    result["room_texture"] = f"data:image/jpeg;base64,{texture_base64}"
+
+    return result
 
 
 @app.post("/api/calibrate")
@@ -327,6 +409,118 @@ async def compute_budget(request: BudgetRequest):
 async def list_project_types():
     """Return all available project types with descriptions and tiers."""
     return get_available_project_types()
+
+
+# ─── Local Projects (SQLite) ─────────────────────────────────
+
+@app.post("/api/projects")
+def create_project(project: ProjectCreate, db: Session = Depends(get_db_session)):
+    db_project = DBProject(
+        name=project.name,
+        theme=project.theme,
+        room_data=project.room_data,
+        furniture_data=project.furniture_data,
+        notes=project.notes or "",
+    )
+    db.add(db_project)
+    db.commit()
+    db.refresh(db_project)
+
+    return {
+        "id": str(db_project.id),
+        "name": db_project.name,
+        "theme": db_project.theme,
+        "room_data": db_project.room_data,
+        "furniture_data": db_project.furniture_data,
+        "notes": db_project.notes,
+        "created_at": db_project.created_at,
+        "updated_at": db_project.updated_at,
+    }
+
+
+@app.get("/api/projects")
+def list_projects(limit: int = 20, db: Session = Depends(get_db_session)):
+    limit = max(1, min(limit, 100))
+    projects = (
+        db.query(DBProject)
+        .order_by(DBProject.updated_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    return [
+        {
+            "id": str(p.id),
+            "name": p.name,
+            "theme": p.theme,
+            "furniture_count": len(p.furniture_data or []),
+            "room_dimensions": (p.room_data or {}).get("dimensions", {}),
+            "created_at": p.created_at,
+            "updated_at": p.updated_at,
+        }
+        for p in projects
+    ]
+
+
+@app.get("/api/projects/{project_id}")
+def get_project(project_id: str, db: Session = Depends(get_db_session)):
+    project = db.query(DBProject).filter(DBProject.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    return {
+        "id": str(project.id),
+        "name": project.name,
+        "theme": project.theme,
+        "room_data": project.room_data,
+        "furniture_data": project.furniture_data,
+        "notes": project.notes,
+        "created_at": project.created_at,
+        "updated_at": project.updated_at,
+    }
+
+
+@app.put("/api/projects/{project_id}")
+def update_project(project_id: str, payload: ProjectUpdate, db: Session = Depends(get_db_session)):
+    project = db.query(DBProject).filter(DBProject.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    if payload.name is not None:
+        project.name = payload.name
+    if payload.theme is not None:
+        project.theme = payload.theme
+    if payload.room_data is not None:
+        project.room_data = payload.room_data
+    if payload.furniture_data is not None:
+        project.furniture_data = payload.furniture_data
+    if payload.notes is not None:
+        project.notes = payload.notes
+
+    db.commit()
+    db.refresh(project)
+
+    return {
+        "id": str(project.id),
+        "name": project.name,
+        "theme": project.theme,
+        "room_data": project.room_data,
+        "furniture_data": project.furniture_data,
+        "notes": project.notes,
+        "created_at": project.created_at,
+        "updated_at": project.updated_at,
+    }
+
+
+@app.delete("/api/projects/{project_id}")
+def delete_project(project_id: str, db: Session = Depends(get_db_session)):
+    project = db.query(DBProject).filter(DBProject.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    db.delete(project)
+    db.commit()
+    return {"success": True, "id": project_id}
 
 
 # ─── Professionals Marketplace Endpoints ─────────────────────

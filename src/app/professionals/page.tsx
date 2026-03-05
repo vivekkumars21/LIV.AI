@@ -38,10 +38,10 @@ function StarRating({ rating, size = 16 }: { rating: number; size?: number }) {
 
 function ProfessionalCard({ professional }: { professional: Professional }) {
     return (
-        <div className="group relative bg-gray-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-indigo-500/40 hover:shadow-[0_0_30px_rgba(99,102,241,0.15)] transition-all duration-300">
+        <div className="group relative bg-white/40 backdrop-blur-md border border-white/20 rounded-3xl p-6 hover:border-white/30 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
             {/* Verified badge */}
             {professional.verified && (
-                <div className="absolute top-4 right-4 bg-emerald-500/20 text-emerald-400 text-xs px-2.5 py-1 rounded-full border border-emerald-500/30 flex items-center gap-1">
+                <div className="absolute top-4 right-4 bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 text-xs px-2.5 py-1 rounded-full border border-green-200 dark:border-green-500/30 flex items-center gap-1">
                     <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                     Verified
                 </div>
@@ -49,17 +49,17 @@ function ProfessionalCard({ professional }: { professional: Professional }) {
 
             {/* Header */}
             <div className="flex items-start gap-4 mb-4">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shrink-0">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center font-bold text-xl shrink-0">
                     {professional.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0">
                     <h3 className="text-white font-semibold text-lg truncate">{professional.name}</h3>
-                    <p className="text-indigo-400 text-sm font-medium">
+                    <p className="text-primary text-sm font-medium">
                         {PROFESSION_LABELS[professional.profession] || professional.profession}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
-                        <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" className="text-gray-500"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" /></svg>
-                        <span className="text-gray-400 text-sm">{professional.city}, {professional.state}</span>
+                        <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" className="text-muted-foreground"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" /></svg>
+                        <span className="text-muted-foreground text-sm">{professional.city}, {professional.state}</span>
                     </div>
                 </div>
             </div>
@@ -72,21 +72,21 @@ function ProfessionalCard({ professional }: { professional: Professional }) {
 
             {/* Pricing */}
             <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="bg-gray-800/60 rounded-xl p-3 border border-white/5">
-                    <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Visiting Charge</p>
-                    <p className="text-white font-bold text-lg">₹{professional.visiting_charge_inr.toLocaleString('en-IN')}</p>
+                <div className="bg-white/40 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                    <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Visiting Charge</p>
+                    <p className="font-bold text-lg">₹{professional.visiting_charge_inr.toLocaleString('en-IN')}</p>
                 </div>
-                <div className="bg-gray-800/60 rounded-xl p-3 border border-white/5">
-                    <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Rate / sq ft</p>
-                    <p className="text-white font-bold text-lg">₹{professional.rate_per_sqft_inr.toLocaleString('en-IN')}</p>
+                <div className="bg-white/40 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                    <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Rate / sq ft</p>
+                    <p className="font-bold text-lg">₹{professional.rate_per_sqft_inr.toLocaleString('en-IN')}</p>
                 </div>
             </div>
 
             {/* Experience & Bio */}
             <div className="mb-4">
-                <p className="text-amber-400 text-sm font-medium">{professional.experience_years} years experience</p>
+                <p className="text-primary text-sm font-medium">{professional.experience_years} years experience</p>
                 {professional.bio && (
-                    <p className="text-gray-400 text-sm mt-2 line-clamp-2">{professional.bio}</p>
+                    <p className="text-muted-foreground text-sm mt-2 line-clamp-2">{professional.bio}</p>
                 )}
             </div>
 
@@ -94,7 +94,7 @@ function ProfessionalCard({ professional }: { professional: Professional }) {
             <div className="flex gap-2">
                 <a
                     href={`tel:${professional.phone}`}
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium py-2.5 px-4 rounded-xl text-center transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-medium py-2.5 px-4 rounded-xl text-center transition-colors flex items-center justify-center gap-2"
                 >
                     <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg>
                     Call Now
@@ -102,7 +102,7 @@ function ProfessionalCard({ professional }: { professional: Professional }) {
                 {professional.email && (
                     <a
                         href={`mailto:${professional.email}`}
-                        className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium py-2.5 px-4 rounded-xl transition-colors flex items-center gap-2 border border-white/10"
+                        className="bg-white/50 backdrop-blur-sm hover:bg-white/70 border border-white/20 text-sm font-medium py-2.5 px-4 rounded-xl transition-colors flex items-center gap-2"
                     >
                         <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
                         Email
@@ -358,35 +358,35 @@ export default function ProfessionalsPage() {
     }, [selectedProfession, sortBy]);
 
     return (
-        <div className="min-h-screen bg-gray-950 text-white">
-            {/* Animated background */}
-            <div className="fixed inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-indigo-600/8 rounded-full blur-[120px] animate-pulse" />
-                <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-600/8 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="min-h-screen bg-background">
+            {/* Animated background - subtle */}
+            <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-30">
+                <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] animate-pulse" />
+                <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
             </div>
 
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="text-center mb-10">
-                    <a href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 text-sm transition-colors">
+                    <a href="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 text-sm transition-colors">
                         ← Back to Home
                     </a>
-                    <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-indigo-200 to-purple-300 bg-clip-text text-transparent mb-3">
+                    <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-3">
                         Find Professionals
                     </h1>
-                    <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                    <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
                         Connect with verified interior designers, contractors, painters and more in your city
                     </p>
                 </div>
 
                 {/* Tab Switcher */}
                 <div className="flex justify-center mb-8">
-                    <div className="bg-gray-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-1.5 flex gap-1">
+                    <div className="bg-white/40 backdrop-blur-md border border-white/20 rounded-2xl p-1.5 flex gap-1 shadow-sm">
                         <button
                             onClick={() => setActiveTab('search')}
                             className={`px-6 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === 'search'
-                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
-                                    : 'text-gray-400 hover:text-white'
+                                    ? 'bg-white shadow-md'
+                                    : 'hover:bg-white/50'
                                 }`}
                         >
                             🔍 Find Professionals
@@ -394,8 +394,8 @@ export default function ProfessionalsPage() {
                         <button
                             onClick={() => setActiveTab('register')}
                             className={`px-6 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === 'register'
-                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
-                                    : 'text-gray-400 hover:text-white'
+                                    ? 'bg-white shadow-md'
+                                    : 'hover:bg-white/50'
                                 }`}
                         >
                             ✨ Register as Professional
@@ -407,7 +407,7 @@ export default function ProfessionalsPage() {
                 {activeTab === 'search' && (
                     <div>
                         {/* Search Bar */}
-                        <div className="bg-gray-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 mb-8">
+                        <div className="bg-white/40 backdrop-blur-md border border-white/20 rounded-2xl p-6 mb-8 shadow-sm">
                             <div className="flex flex-col md:flex-row gap-4">
                                 {/* City Input */}
                                 <div className="flex-1 relative">
@@ -417,7 +417,7 @@ export default function ProfessionalsPage() {
                                     <input
                                         type="text"
                                         placeholder="Enter city name (e.g., Ahmedabad)"
-                                        className="w-full bg-gray-800/80 border border-white/10 rounded-xl pl-12 pr-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all"
+                                        className="w-full bg-white/50 backdrop-blur-sm border border-white/20 rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
                                         value={searchCity}
                                         onChange={(e) => setSearchCity(e.target.value)}
                                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -434,7 +434,7 @@ export default function ProfessionalsPage() {
 
                                 {/* Profession Filter */}
                                 <select
-                                    className="bg-gray-800/80 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-indigo-500/50 transition-all min-w-[180px]"
+                                    className="bg-white/50 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3.5 focus:outline-none focus:border-primary/50 transition-all min-w-[180px]"
                                     value={selectedProfession}
                                     onChange={(e) => setSelectedProfession(e.target.value as ProfessionType | '')}
                                 >
@@ -446,7 +446,7 @@ export default function ProfessionalsPage() {
 
                                 {/* Sort */}
                                 <select
-                                    className="bg-gray-800/80 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-indigo-500/50 transition-all min-w-[160px]"
+                                    className="bg-white/50 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3.5 focus:outline-none focus:border-primary/50 transition-all min-w-[160px]"
                                     value={sortBy}
                                     onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
                                 >
@@ -460,7 +460,7 @@ export default function ProfessionalsPage() {
                                 <button
                                     onClick={handleSearch}
                                     disabled={loading || !searchCity.trim()}
-                                    className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3.5 px-8 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-indigo-500/25 whitespace-nowrap"
+                                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3.5 px-8 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg whitespace-nowrap"
                                 >
                                     {loading ? 'Searching...' : 'Search'}
                                 </button>
@@ -510,10 +510,10 @@ export default function ProfessionalsPage() {
 
                 {/* ─── Register Tab ────────────────────────────────── */}
                 {activeTab === 'register' && (
-                    <div className="bg-gray-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+                    <div className="bg-white/40 backdrop-blur-md border border-white/20 rounded-3xl p-8 shadow-sm">
                         <div className="text-center mb-8">
-                            <h2 className="text-2xl font-bold text-white mb-2">Register as a Professional</h2>
-                            <p className="text-gray-400">Create your profile and let clients find you. Set your own rates and visiting charges.</p>
+                            <h2 className="text-2xl font-bold mb-2">Register as a Professional</h2>
+                            <p className="text-muted-foreground">Create your profile and let clients find you. Set your own rates and visiting charges.</p>
                         </div>
                         <RegistrationForm onSuccess={() => setActiveTab('search')} />
                     </div>

@@ -50,7 +50,7 @@ export function ImageUploader({ onImageSelected, fileInputRef }: ImageUploaderPr
     }, [handleImageUpload]);
 
     return (
-        <Card>
+        <Card className="bg-white/50 backdrop-blur-sm border-white/20 shadow-lg">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <Camera className="h-5 w-5" />
@@ -59,21 +59,27 @@ export function ImageUploader({ onImageSelected, fileInputRef }: ImageUploaderPr
             </CardHeader>
             <CardContent>
                 <div
-                    className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-muted-foreground/50 transition-colors cursor-pointer"
+                    className="border-2 border-dashed border-border rounded-3xl p-8 text-center hover:border-primary/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer"
                     onDrop={handleDrop}
                     onDragOver={(e) => e.preventDefault()}
                     onClick={() => fileInputRef.current?.click()}
                 >
-                    <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <h3 className="text-lg font-semibold mb-2">
-                        Drop your room photo here or click to browse
-                    </h3>
-                    <p className="text-muted-foreground mb-4">
-                        Support JPG, PNG files up to 10MB
-                    </p>
-                    <Button variant="outline">
-                        Choose File
-                    </Button>
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="p-4 bg-primary/10 rounded-full">
+                            <Upload className="h-8 w-8 text-primary" />
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="text-lg font-semibold">
+                                Upload your room photo
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                                Drag & drop or click to select • JPG, PNG up to 10MB
+                            </p>
+                        </div>
+                        <Button variant="outline" type="button">
+                            Choose File
+                        </Button>
+                    </div>
                 </div>
                 <input
                     ref={fileInputRef}
