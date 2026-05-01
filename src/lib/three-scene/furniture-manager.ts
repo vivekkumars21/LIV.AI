@@ -48,7 +48,7 @@ export const FURNITURE_CATALOG: FurnitureItem[] = [
     dimensions: { width: 2.2, height: 0.85, depth: 0.95 },
     price: 45000,
     material: "Performance Linen",
-    thumbnailUrl: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=400&q=80"
+    thumbnailUrl: "/images/products/s1-cloud-modular-sofa.png"
   },
   {
     id: "sofa-l-shaped",
@@ -57,7 +57,7 @@ export const FURNITURE_CATALOG: FurnitureItem[] = [
     dimensions: { width: 2.8, height: 0.85, depth: 1.8 },
     price: 85000,
     material: "Top-grain Leather",
-    thumbnailUrl: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=400&q=80"
+    thumbnailUrl: "/images/products/s2-nordic-sectional.png"
   },
   {
     id: "sofa-loveseat",
@@ -66,7 +66,7 @@ export const FURNITURE_CATALOG: FurnitureItem[] = [
     dimensions: { width: 1.6, height: 0.8, depth: 0.9 },
     price: 32000,
     material: "Velvet",
-    thumbnailUrl: "https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&w=400&q=80"
+    thumbnailUrl: "/images/products/s4-linen-loveseat.png"
   },
   // Chairs
   {
@@ -76,7 +76,7 @@ export const FURNITURE_CATALOG: FurnitureItem[] = [
     dimensions: { width: 0.75, height: 0.9, depth: 0.8 },
     price: 18000,
     material: "Bentwood & Leather",
-    thumbnailUrl: "https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&w=400&q=80"
+    thumbnailUrl: "/images/products/s7-designer-velvet-chair.png"
   },
   {
     id: "chair-office",
@@ -85,17 +85,9 @@ export const FURNITURE_CATALOG: FurnitureItem[] = [
     dimensions: { width: 0.65, height: 1.1, depth: 0.65 },
     price: 12500,
     material: "Recycled Mesh",
-    thumbnailUrl: "https://images.unsplash.com/photo-1505797149-43b007664973?auto=format&fit=crop&w=400&q=80"
+    thumbnailUrl: "/images/generated/ar-chair.svg"
   },
-  {
-    id: "chair-dining",
-    name: "Solid Oak Dining Chair",
-    category: "Chairs",
-    dimensions: { width: 0.45, height: 0.85, depth: 0.5 },
-    price: 6500,
-    material: "White Oak",
-    thumbnailUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=400&q=80"
-  },
+
   {
     id: "chair-lounge",
     name: "Mid-Century Lounge Chair",
@@ -103,7 +95,7 @@ export const FURNITURE_CATALOG: FurnitureItem[] = [
     dimensions: { width: 0.85, height: 0.8, depth: 0.85 },
     price: 24000,
     material: "Walnut & Wool",
-    thumbnailUrl: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?auto=format&fit=crop&w=400&q=80"
+    thumbnailUrl: "/images/products/chairs_velvet_accent_1772731760505.png"
   },
   // Tables
   {
@@ -113,7 +105,7 @@ export const FURNITURE_CATALOG: FurnitureItem[] = [
     dimensions: { width: 1.2, height: 0.4, depth: 0.8 },
     price: 22000,
     material: "Tempered Glass & Ash",
-    thumbnailUrl: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&w=400&q=80"
+    thumbnailUrl: "/images/products/t2-glass-coffee-table.png"
   },
   {
     id: "table-dining-6",
@@ -122,7 +114,7 @@ export const FURNITURE_CATALOG: FurnitureItem[] = [
     dimensions: { width: 1.8, height: 0.76, depth: 0.9 },
     price: 48000,
     material: "Solid Walnut",
-    thumbnailUrl: "https://images.unsplash.com/photo-1577140917170-285929fb55b7?auto=format&fit=crop&w=400&q=80"
+    thumbnailUrl: "/images/products/t1-kyoto-dining-table.png"
   },
   {
     id: "table-side",
@@ -131,7 +123,7 @@ export const FURNITURE_CATALOG: FurnitureItem[] = [
     dimensions: { width: 0.45, height: 0.5, depth: 0.45 },
     price: 8500,
     material: "Powder-coated Steel",
-    thumbnailUrl: "https://images.unsplash.com/photo-1551216223-37c8d1dbec5c?auto=format&fit=crop&w=400&q=80"
+    thumbnailUrl: "/images/products/t4-marble-side-table.png"
   },
   {
     id: "table-desk",
@@ -140,7 +132,7 @@ export const FURNITURE_CATALOG: FurnitureItem[] = [
     dimensions: { width: 1.4, height: 0.75, depth: 0.7 },
     price: 15000,
     material: "Maple Veneer",
-    thumbnailUrl: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=400&q=80"
+    thumbnailUrl: "/images/products/t6-industrial-desk.png"
   },
   // Beds
   {
@@ -150,7 +142,7 @@ export const FURNITURE_CATALOG: FurnitureItem[] = [
     dimensions: { width: 1.6, height: 1.0, depth: 2.1 },
     price: 35000,
     material: "Stained Pine",
-    thumbnailUrl: "https://images.unsplash.com/photo-1505693314120-0d4438678217?auto=format&fit=crop&w=400&q=80"
+    thumbnailUrl: "/images/products/b1-serene-platform-bed.png"
   },
   {
     id: "bed-king",
@@ -159,7 +151,7 @@ export const FURNITURE_CATALOG: FurnitureItem[] = [
     dimensions: { width: 1.9, height: 1.1, depth: 2.2 },
     price: 52000,
     material: "Upholstered Headboard",
-    thumbnailUrl: "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=400&q=80"
+    thumbnailUrl: "/images/products/b2-upholstered-king-bed.png"
   },
   // Lighting
   {
@@ -169,7 +161,7 @@ export const FURNITURE_CATALOG: FurnitureItem[] = [
     dimensions: { width: 0.4, height: 1.8, depth: 1.2 },
     price: 9500,
     material: "Brushed Nickel",
-    thumbnailUrl: "https://images.unsplash.com/photo-1507473885765-e6ed657f9971?auto=format&fit=crop&w=400&q=80"
+    thumbnailUrl: "/images/products/l1-eclipse-floor-lamp.png"
   },
   {
     id: "lamp-table",
@@ -178,7 +170,7 @@ export const FURNITURE_CATALOG: FurnitureItem[] = [
     dimensions: { width: 0.25, height: 0.45, depth: 0.25 },
     price: 4200,
     material: "Opal Glass",
-    thumbnailUrl: "https://images.unsplash.com/photo-1534073828943-f801091bb18c?auto=format&fit=crop&w=400&q=80"
+    thumbnailUrl: "/images/products/l3-minimalist-table-lamp.png"
   },
   // Storage
   {
@@ -188,7 +180,7 @@ export const FURNITURE_CATALOG: FurnitureItem[] = [
     dimensions: { width: 0.9, height: 2.0, depth: 0.3 },
     price: 14000,
     material: "Birch Plywood",
-    thumbnailUrl: "https://images.unsplash.com/photo-1594620302200-9a7622d4a13c?auto=format&fit=crop&w=400&q=80"
+    thumbnailUrl: "/images/products/storage_industrial_bookshelf_1772731930015.png"
   },
   {
     id: "cabinet-tv-unit",
@@ -197,17 +189,9 @@ export const FURNITURE_CATALOG: FurnitureItem[] = [
     dimensions: { width: 1.8, height: 0.4, depth: 0.4 },
     price: 21000,
     material: "Matte Lacquer",
-    thumbnailUrl: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=400&q=80"
+    thumbnailUrl: "/images/category-storage.png"
   },
-  {
-    id: "cabinet-wardrobe",
-    name: "Linear 2-Door Wardrobe",
-    category: "Cabinets",
-    dimensions: { width: 1.2, height: 2.1, depth: 0.6 },
-    price: 38000,
-    material: "Oak Laminate",
-    thumbnailUrl: "https://images.unsplash.com/photo-1558997519-83ea9252edf8?auto=format&fit=crop&w=400&q=80"
-  },
+
   // Plants
   {
     id: "plant-fiddle",
@@ -216,17 +200,9 @@ export const FURNITURE_CATALOG: FurnitureItem[] = [
     dimensions: { width: 0.6, height: 1.6, depth: 0.6 },
     price: 3500,
     material: "Natural",
-    thumbnailUrl: "https://images.unsplash.com/photo-1597072689227-8882273e8f6a?auto=format&fit=crop&w=400&q=80"
+    thumbnailUrl: "/images/generated/ar-plant.svg"
   },
-  {
-    id: "plant-monstera",
-    name: "Monstera Deliciosa",
-    category: "Plants",
-    dimensions: { width: 0.5, height: 0.8, depth: 0.5 },
-    price: 1800,
-    material: "Natural",
-    thumbnailUrl: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=400&q=80"
-  },
+
 ];
 
 export const FURNITURE_CATEGORIES = [

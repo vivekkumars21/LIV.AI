@@ -66,55 +66,55 @@
     {
       "id": "avatar-sophia",
       "description": "Avatar of Sophia Turner",
-      "imageUrl": "https://api.dicebear.com/7.x/avataaars/svg?seed=sophia&backgroundColor=b6e3f4,c0aede,d1d4f9",
+      "imageUrl": "/images/generated/avatar-sophia.svg",
       "imageHint": "person avatar"
     },
     {
       "id": "avatar-ethan",
       "description": "Avatar of Ethan Walker",
-      "imageUrl": "https://api.dicebear.com/7.x/avataaars/svg?seed=ethan&backgroundColor=b6e3f4,c0aede,d1d4f9",
+      "imageUrl": "/images/generated/avatar-ethan.svg",
       "imageHint": "person avatar"
     },
     {
       "id": "avatar-olivia",
       "description": "Avatar of Olivia Reed",
-      "imageUrl": "https://api.dicebear.com/7.x/avataaars/svg?seed=olivia&backgroundColor=b6e3f4,c0aede,d1d4f9",
+      "imageUrl": "/images/generated/avatar-olivia.svg",
       "imageHint": "person avatar"
     },
     {
       "id": "ar-chair",
       "description": "Modern Armchair",
-      "imageUrl": "https://images.unsplash.com/photo-1618221196585-11b5b1a7b5b5b?auto=format&fit=crop&w=500&q=80",
+      "imageUrl": "/images/generated/ar-chair.svg",
       "imageHint": "armchair"
     },
     {
       "id": "ar-sofa",
       "description": "3-Seater Sofa",
-      "imageUrl": "https://images.unsplash.com/photo-1618221196585-12b5b1a7b5b5b?auto=format&fit=crop&w=500&q=80",
+      "imageUrl": "/images/generated/ar-sofa.svg",
       "imageHint": "sofa"
     },
     {
       "id": "ar-table",
       "description": "Coffee Table",
-      "imageUrl": "https://images.unsplash.com/photo-1618221196585-13b5b1a7b5b5b?auto=format&fit=crop&w=500&q=80",
+      "imageUrl": "/images/generated/ar-table.svg",
       "imageHint": "coffee table"
     },
     {
       "id": "ar-lamp",
       "description": "Floor Lamp",
-      "imageUrl": "https://images.unsplash.com/photo-1618221196585-14b5b1a7b5b5b?auto=format&fit=crop&w=500&q=80",
+      "imageUrl": "/images/generated/ar-lamp.svg",
       "imageHint": "floor lamp"
     },
     {
       "id": "ar-bookshelf",
       "description": "Book Shelf",
-      "imageUrl": "https://images.unsplash.com/photo-1618221196585-15b5b1a7b5b5b?auto=format&fit=crop&w=500&q=80",
+      "imageUrl": "/images/generated/ar-bookshelf.svg",
       "imageHint": "bookshelf"
     },
     {
       "id": "ar-plant",
       "description": "Potted Plant",
-      "imageUrl": "https://images.unsplash.com/photo-1618221196585-16b5b1a7b5b5b?auto=format&fit=crop&w=500&q=80",
+      "imageUrl": "/images/generated/ar-plant.svg",
       "imageHint": "potted plant"
     }
   ]
