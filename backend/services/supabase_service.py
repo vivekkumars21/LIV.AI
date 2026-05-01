@@ -10,17 +10,21 @@ class SupabaseService:
     def __init__(self, url: str, anon_key: str, service_role_key: str | None = None) -> None:
         # Auth calls should use anon key.
         self.auth_client: Client = create_client(url, anon_key)
-        # Table operations can use service role key when available.
-        self.data_client: Client = create_client(url, service_role_key or anon_key)
+        # Use anon_key for general data operations to ensure public access works.
+        # Authenticated requests will still work if the user token is provided.
+        self.data_client: Client = create_client(url, anon_key)
 
-    @staticmethod
-    def from_env() -> Optional["SupabaseService"]:
+    @classmethod
+    def from_env(cls):
         url = os.getenv("SUPABASE_URL")
         anon_key = os.getenv("SUPABASE_ANON_KEY")
         service_role_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+        
         if not url or not anon_key:
+            print(f"Supabase configuration missing: URL={bool(url)}, Key={bool(anon_key)}")
             return None
-        return SupabaseService(url, anon_key, service_role_key)
+            
+        return cls(url, anon_key, service_role_key)
 
     def sign_up(self, email: str, password: str, full_name: str | None = None) -> dict[str, Any]:
         payload: dict[str, Any] = {"email": email, "password": password}

@@ -39,7 +39,7 @@ export function FeaturedDesigns() {
             className="inline-flex items-center gap-2 font-medium text-primary hover:underline"
             prefetch={false}
           >
-            View All Designs <ArrowRight className="h-4 w-4" />
+            View All Designs
           </Link>
         </div>
       </div>

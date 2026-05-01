@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { Upload, Camera, Ruler, X } from "lucide-react";
+import { } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 
@@ -91,7 +91,9 @@ export function UploadModal({
                       : "border-white/30 bg-white/20 hover:border-primary/50 hover:bg-white/30 backdrop-blur-sm"
                   }`}
                 >
-                  <Upload className="mx-auto mb-4 h-12 w-12 text-primary" />
+                  <div className="mx-auto mb-4 text-xs font-semibold uppercase tracking-widest text-primary">
+                    Upload Photo
+                  </div>
                   <p className="text-lg font-medium text-foreground">
                     Drop your room photo here
                   </p>
@@ -124,7 +126,6 @@ export function UploadModal({
                     variant="outline"
                     className="w-full border-white/20 bg-white/50 text-foreground hover:bg-white/80 backdrop-blur-sm"
                   >
-                    <Camera className="mr-2 h-4 w-4" />
                     Try demo room
                   </Button>
                   <Button
@@ -150,17 +151,16 @@ export function UploadModal({
                       setSelectedFile(null);
                       setPreview(null);
                     }}
-                    className="absolute right-2 top-2 rounded-full bg-white/80 p-1.5 text-foreground hover:bg-white backdrop-blur-sm shadow-sm"
+                    className="absolute right-2 top-2 rounded-full bg-white/80 px-2 py-1 text-[10px] font-bold text-foreground hover:bg-white backdrop-blur-sm shadow-sm"
                   >
-                    <X className="h-4 w-4" />
+                    REMOVE
                   </button>
                 </div>
 
                 {/* Ceiling Height */}
                 <div className="mb-6">
                   <div className="mb-2 flex items-center justify-between">
-                    <label className="flex items-center gap-2 text-sm font-medium text-foreground">
-                      <Ruler className="h-4 w-4" />
+                    <label className="text-sm font-medium text-foreground">
                       Ceiling Height
                     </label>
                     <span className="rounded-lg bg-white/50 px-2 py-0.5 text-sm font-mono text-primary backdrop-blur-sm">

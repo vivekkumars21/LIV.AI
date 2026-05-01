@@ -19,17 +19,24 @@ def check_tables():
 
     print("Checking 'professionals' table...")
     try:
-        profs = svc.data_client.table("professionals").select("*").limit(1).execute()
-        print(f"Professionals count: {len(profs.data)}")
+        profs = svc.data_client.table("professionals").select("*").execute()
+        print(f"Professionals total count: {len(profs.data)}")
     except Exception as e:
         print(f"Error checking professionals: {e}")
 
     print("\nChecking 'products' table...")
     try:
-        products = svc.data_client.table("products").select("*").limit(1).execute()
-        print(f"Products count: {len(products.data)}")
+        products = svc.data_client.table("products").select("*").execute()
+        print(f"Products total count: {len(products.data)}")
     except Exception as e:
         print(f"Error checking products: {e}")
+
+    print("\nChecking 'furniture_items' table...")
+    try:
+        furniture = svc.data_client.table("furniture_items").select("*").execute()
+        print(f"Furniture total count: {len(furniture.data)}")
+    except Exception as e:
+        print(f"Error checking furniture_items: {e}")
 
     print("\nChecking 'furniture_items' table...")
     try:

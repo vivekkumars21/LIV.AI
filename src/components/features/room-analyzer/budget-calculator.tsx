@@ -247,15 +247,13 @@ export default function BudgetCalculator({ initialAreaSqft }: { initialAreaSqft?
                     {/* Savings Tips */}
                     {result.savings_tips.length > 0 && (
                         <div className="pt-2">
-                            <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" clipRule="evenodd" /></svg>
+                            <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest mb-3">
                                 Savings Tips
                             </p>
-                            <div className="space-y-2.5">
+                            <div className="space-y-2">
                                 {result.savings_tips.map((tip, i) => (
-                                    <div key={i} className="bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-500/20 rounded-xl px-4 py-3 text-emerald-800 dark:text-emerald-300 text-sm font-medium flex items-start gap-2.5 shadow-sm">
-                                        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" className="mt-0.5 shrink-0"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                                        <span>{tip}</span>
+                                    <div key={i} className="bg-secondary/20 border border-border/40 rounded-xl px-4 py-3 text-foreground/80 text-sm font-medium shadow-sm">
+                                        {tip}
                                     </div>
                                 ))}
                             </div>

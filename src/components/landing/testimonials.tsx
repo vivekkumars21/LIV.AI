@@ -76,14 +76,12 @@ export function Testimonials() {
                     </div>
                   </div>
                   <p className="text-gray-700 leading-relaxed font-light">{testimonial.text}</p>
-                  <div className="mt-4 flex items-center gap-6 text-sm text-gray-500">
-                    <div className="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer">
-                      <ThumbsUp className="h-4 w-4" />
-                      <span>{testimonial.likes}</span>
+                  <div className="mt-4 flex items-center gap-6 text-xs text-gray-400 font-medium">
+                    <div className="hover:text-primary transition-colors cursor-pointer">
+                      {testimonial.likes} likes
                     </div>
-                    <div className="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer">
-                      <MessageSquare className="h-4 w-4" />
-                      <span>{testimonial.comments}</span>
+                    <div className="hover:text-primary transition-colors cursor-pointer">
+                      {testimonial.comments} comments
                     </div>
                   </div>
                 </div>

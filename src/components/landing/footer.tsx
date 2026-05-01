@@ -16,31 +16,9 @@ export function Footer() {
           <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 md:justify-start mb-6 md:mb-0 text-sm font-medium text-gray-500">
             {/* Links removed for simplicity until pages are implemented */}
           </nav>
-          <div className="flex items-center gap-4">
-            <Link
-              href="#"
-              aria-label="Twitter"
-              className="text-gray-400 hover:text-primary"
-              prefetch={false}
-            >
-              <Twitter className="h-5 w-5" />
-            </Link>
-            <Link
-              href="#"
-              aria-label="Instagram"
-              className="text-gray-400 hover:text-primary"
-              prefetch={false}
-            >
-              <Instagram className="h-5 w-5" />
-            </Link>
-            <Link
-              href="#"
-              aria-label="Facebook"
-              className="text-gray-400 hover:text-primary"
-              prefetch={false}
-            >
-              <Facebook className="h-5 w-5" />
-            </Link>
+          <div className="flex items-center gap-6 text-sm font-medium text-gray-500">
+            <Link href="#" className="hover:text-primary">Privacy Policy</Link>
+            <Link href="#" className="hover:text-primary">Terms of Service</Link>
           </div>
         </div>
         <p className="mt-8 text-center text-sm text-gray-400">

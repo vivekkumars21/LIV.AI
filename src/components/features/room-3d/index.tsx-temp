@@ -1,0 +1,140 @@
+"use client";
+
+import React, { useRef, useState, useEffect, useCallback, useMemo } from "react";
+import * as THREE from "three";
+import {
+  SceneManager,
+  FirstPersonControls,
+  OrbitControls,
+  RoomBuilder,
+  FurnitureManager,
+  LightingManager,
+  THEMES,
+  FURNITURE_CATALOG,
+} from "@/lib/three-scene";
+import type { RoomData, PlacedFurniture, FurnitureItem } from "@/lib/three-scene";
+import { FurnitureSidebar } from "./furniture-sidebar";
+import { PropertiesPanel } from "./properties-panel";
+import { Toolbar } from "./toolbar";
+import { Minimap } from "./minimap";
+import { UploadModal } from "./upload-modal";
+import { products, parseDimensionsMetric, type Product } from "@/lib/products";
+
+export type ViewMode = "walkthrough" | "orbit" | "topdown";
+
+export function Room3DViewer() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const sceneManagerRef = useRef<SceneManager | null>(null);
+  const controlsRef = useRef<FirstPersonControls | null>(null);
+  const orbitControlsRef = useRef<OrbitControls | null>(null);
+  const roomBuilderRef = useRef<RoomBuilder | null>(null);
+  const furnitureManagerRef = useRef<FurnitureManager | null>(null);
+  const lightingManagerRef = useRef<LightingManager | null>(null);
+
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("");
+  const [roomData, setRoomData] = useState<RoomData | null>(null);
+  const [currentTheme, setCurrentTheme] = useState("modern");
+  const [selectedFurniture, setSelectedFurniture] = useState<PlacedFurniture | null>(null);
+  const [placedItems, setPlacedItems] = useState<PlacedFurniture[]>([]);
+  const [showPointCloud, setShowPointCloud] = useState(false);
+  const [showMarkers, setShowMarkers] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [propertiesOpen, setPropertiesOpen] = useState(false);
+  const [isPlacing, setIsPlacing] = useState(false);
+  const [isDraggingItem, setIsDraggingItem] = useState(false);
+  const [controlsLocked, setControlsLocked] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string>("");
+  const [webglError, setWebglError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("walkthrough");
+
+  const [dbFurniture, setDbFurniture] = useState<FurnitureItem[]>([]);
+  const [dbProducts, setDbProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const loadCatalog = async () => {
+      try {
+        const [furnitureRes, productsRes] = await Promise.all([
+          fetch("/api/python/furniture"),
+          fetch("/api/python/products?limit=300")
+        ]);
+        
+        if (furnitureRes.ok) {
+          const data = await furnitureRes.json();
+          if (Array.isArray(data)) setDbFurniture(data);
+        }
+        
+        if (productsRes.ok) {
+          const data = await productsRes.json();
+          if (Array.isArray(data)) setDbProducts(data);
+        }
+      } catch (err) {
+        console.warn("Catalog fetch failed, using fallbacks:", err);
+      }
+    };
+    loadCatalog();
+  }, []);
+
+  const plannerCatalog = useMemo(() => {
+    const categoryMap: Record<string, string> = {
+      "Living Room": "Sofas",
+      "Dining": "Tables",
+      "Bedroom": "Beds",
+      "Lighting": "Lamps",
+      "Decor": "Cabinets",
+      "Storage": "Cabinets",
+      Sofas: "Sofas",
+      Chairs: "Chairs",
+      Tables: "Tables",
+      Beds: "Beds",
+      Lamps: "Lamps",
+      Plants: "Plants",
+      Cabinets: "Cabinets",
+    };
+
+    const productSource = dbProducts.length > 0 ? dbProducts : products;
+    const coreItems = FURNITURE_CATALOG;
+
+    const ecommerceItems = productSource
+      .filter(p => p.dimensions && p.category.toLowerCase() !== "photos")
+      .map<FurnitureItem | null>((product) => {
+        const dims = parseDimensionsMetric(product.dimensions);
+        if (!dims) return null;
+        if (dims.width < 0.2 || dims.height < 0.1) return null;
+
+        return {
+          id: `store-${product.id}`,
+          name: product.name,
+          category: categoryMap[product.category] ?? "Cabinets",
+          thumbnailUrl: product.image,
+          dimensions: {
+            width: dims.width,
+            height: dims.height,
+            depth: dims.depth,
+          },
+          price: product.price,
+          material: product.material,
+        };
+      })
+      .filter((item): item is FurnitureItem => item !== null);
+
+    const allItems = [...dbFurniture, ...coreItems, ...ecommerceItems];
+    const uniqueItemsMap = new Map<string, FurnitureItem>();
+    allItems.forEach(item => {
+      if (!uniqueItemsMap.has(item.id)) {
+        uniqueItemsMap.set(item.id, item);
+      }
+    });
+
+    const filteredCatalogItems = Array.from(uniqueItemsMap.values());
+    const categories = Array.from(new Set(filteredCatalogItems.map((item) => item.category)));
+
+    return { items: filteredCatalogItems, categories };
+  }, [dbFurniture, dbProducts]);
+
+  // Rest of the component (truncated for brevity in this tool call, but I will write the full file if needed)
+  // I'll use replace_file_content to fix the rest of the file instead of writing everything.

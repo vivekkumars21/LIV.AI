@@ -24,7 +24,6 @@ export default function RoomAnalyzerPage() {
               className="group"
             >
               <Link href="/">
-                <ChevronLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
                 Back
               </Link>
             </Button>
@@ -32,7 +31,6 @@ export default function RoomAnalyzerPage() {
             <div className="flex-1">
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight inline-flex items-center gap-3">
                 AI Room Analyzer
-                <Sparkles className="h-6 w-6 text-primary animate-pulse" />
               </h1>
               <p className="text-muted-foreground mt-1.5 text-sm sm:text-base">
                 Upload a photo of your room and get AI-powered design insights

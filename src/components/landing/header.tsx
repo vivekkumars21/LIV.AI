@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { IntraKartLogo } from '@/components/ui/intrakart-logo';
-import { Heart, LogOut, User as UserIcon, ShoppingCart } from 'lucide-react';
+import { } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   DropdownMenu,
@@ -46,9 +46,7 @@ export function Header() {
           {user ? (
             <>
               <CartSheet />
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
-                <Heart className="h-5 w-5" strokeWidth={1.5} />
-              </Button>
+              {/* Removed extra icons */}
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -56,7 +54,7 @@ export function Header() {
                     <Avatar className="h-9 w-9 border border-border">
                       <AvatarImage src={user.photoURL || undefined} alt="User" />
                       <AvatarFallback className="bg-primary/10 text-primary">
-                        {user.email ? user.email[0].toUpperCase() : <UserIcon className="h-4 w-4" strokeWidth={1.5} />}
+                        {user.email ? user.email[0].toUpperCase() : "U"}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -72,11 +70,9 @@ export function Header() {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
-                    <UserIcon className="mr-2 h-4 w-4" strokeWidth={1.5} />
                     <span>Profile</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => logout()}>
-                    <LogOut className="mr-2 h-4 w-4" strokeWidth={1.5} />
                     <span>Log out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>

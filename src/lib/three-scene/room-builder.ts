@@ -347,7 +347,7 @@ export class RoomBuilder {
     this.addDimensionLine(
       new THREE.Vector3(-hw, labelY, -0.15),
       new THREE.Vector3(hw, labelY, -0.15),
-      `${width.toFixed(1)}m`,
+      `${width.toFixed(2)}m`,
       0xff4444
     );
 
@@ -355,7 +355,7 @@ export class RoomBuilder {
     this.addDimensionLine(
       new THREE.Vector3(-hw - 0.15, labelY, 0),
       new THREE.Vector3(-hw - 0.15, labelY, length),
-      `${length.toFixed(1)}m`,
+      `${length.toFixed(2)}m`,
       0x4444ff
     );
 
@@ -363,7 +363,7 @@ export class RoomBuilder {
     this.addDimensionLine(
       new THREE.Vector3(-hw - 0.15, 0, -0.15),
       new THREE.Vector3(-hw - 0.15, height, -0.15),
-      `${height.toFixed(1)}m`,
+      `${height.toFixed(2)}m`,
       0x44bb44
     );
 

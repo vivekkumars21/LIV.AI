@@ -64,22 +64,18 @@ export function AnalysisResults({ analysis, ceilingHeight, imageFile, defaultTab
                 <TabsList className="flex flex-wrap lg:grid lg:grid-cols-4 w-full h-auto p-1.5 gap-2 bg-secondary/30 border border-border/50 rounded-2xl shadow-lg mb-8">
 
                     <TabsTrigger value="overview" className="flex-1 lg:flex-none py-3 px-4 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all font-semibold data-[state=active]:text-foreground">
-                        <LayoutDashboard className="mr-2 h-4 w-4" />
                         Overview
                     </TabsTrigger>
 
                     <TabsTrigger value="suggestions" className="flex-1 lg:flex-none py-3 px-4 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all font-semibold data-[state=active]:text-foreground">
-                        <MessageSquare className="mr-2 h-4 w-4" />
                         Suggestions
                     </TabsTrigger>
 
                     <TabsTrigger value="colors" className="flex-1 lg:flex-none py-3 px-4 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all font-semibold data-[state=active]:text-foreground">
-                        <Palette className="mr-2 h-4 w-4" />
                         Colors
                     </TabsTrigger>
 
                     <TabsTrigger value="measurement" className="flex-1 lg:flex-none py-3 px-4 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all font-semibold data-[state=active]:text-foreground">
-                        <Box className="mr-2 h-4 w-4" />
                         Measurements
                     </TabsTrigger>
 
@@ -92,8 +88,7 @@ export function AnalysisResults({ analysis, ceilingHeight, imageFile, defaultTab
                         <Card className="bg-card text-card-foreground border-border/50 rounded-3xl overflow-hidden shadow-sm">
                             <CardContent className="p-8 space-y-6">
                                 <div>
-                                    <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                                        <LayoutDashboard className="w-6 h-6 text-primary" />
+                                    <h3 className="text-2xl font-bold mb-6">
                                         Room Overview
                                     </h3>
                                 </div>
@@ -101,8 +96,7 @@ export function AnalysisResults({ analysis, ceilingHeight, imageFile, defaultTab
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {/* Space Information */}
                                     <div className="bg-secondary/20 rounded-2xl p-5 border border-border/50">
-                                        <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                                            <Box className="w-5 h-5 text-primary" />
+                                        <h4 className="font-semibold text-lg mb-3">
                                             Space
                                         </h4>
                                         <div className="space-y-2 text-sm">
@@ -173,8 +167,7 @@ export function AnalysisResults({ analysis, ceilingHeight, imageFile, defaultTab
 
                                     {/* Lighting Information */}
                                     <div className="bg-secondary/20 rounded-2xl p-5 border border-border/50">
-                                        <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                                            <Lightbulb className="w-5 h-5 text-yellow-500" />
+                                        <h4 className="font-semibold text-lg mb-3">
                                             Lighting
                                         </h4>
                                         <div className="space-y-2 text-sm">
@@ -236,8 +229,7 @@ export function AnalysisResults({ analysis, ceilingHeight, imageFile, defaultTab
 
                                 {/* Color Palette */}
                                 <div className="bg-secondary/20 rounded-2xl p-5 border border-border/50">
-                                    <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                                        <Palette className="w-5 h-5 text-primary" />
+                                    <h4 className="font-semibold text-lg mb-3">
                                         Color Palette
                                     </h4>
                                     <div className="space-y-3">
@@ -279,8 +271,7 @@ export function AnalysisResults({ analysis, ceilingHeight, imageFile, defaultTab
                         <Card className="bg-card text-card-foreground border-border/50 rounded-3xl overflow-hidden shadow-sm">
                             <CardContent className="p-8 space-y-6">
                                 <div>
-                                    <h3 className="text-2xl font-bold mb-2 flex items-center gap-2">
-                                        <MessageSquare className="w-6 h-6 text-primary" />
+                                    <h3 className="text-2xl font-bold mb-2">
                                         Design Suggestions
                                     </h3>
                                     <p className="text-muted-foreground text-sm">AI-powered recommendations based on your room analysis</p>
@@ -305,8 +296,7 @@ export function AnalysisResults({ analysis, ceilingHeight, imageFile, defaultTab
                                 {/* Color Recommendations */}
                                 {analysis.recommendations.colors.length > 0 && (
                                     <div className="bg-secondary/20 rounded-2xl p-5 border border-border/50">
-                                        <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                                            <Palette className="w-5 h-5 text-primary" />
+                                        <h4 className="font-semibold text-lg mb-3">
                                             Color Suggestions
                                         </h4>
                                         <ul className="space-y-2">
@@ -323,8 +313,7 @@ export function AnalysisResults({ analysis, ceilingHeight, imageFile, defaultTab
                                 {/* Furniture Recommendations */}
                                 {analysis.recommendations.furniture.length > 0 && (
                                     <div className="bg-secondary/20 rounded-2xl p-5 border border-border/50">
-                                        <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                                            <Box className="w-5 h-5 text-primary" />
+                                        <h4 className="font-semibold text-lg mb-3">
                                             Furniture Suggestions
                                         </h4>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -340,8 +329,7 @@ export function AnalysisResults({ analysis, ceilingHeight, imageFile, defaultTab
                                 {/* Improvements */}
                                 {analysis.recommendations.improvements.length > 0 && (
                                     <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-5 border border-primary/20">
-                                        <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                                            <Lightbulb className="w-5 h-5 text-primary" />
+                                        <h4 className="font-semibold text-lg mb-3">
                                             Improvement Tips
                                         </h4>
                                         <ul className="space-y-3">
@@ -364,8 +352,7 @@ export function AnalysisResults({ analysis, ceilingHeight, imageFile, defaultTab
                         <Card className="bg-card text-card-foreground border-border/50 rounded-3xl overflow-hidden shadow-sm">
                             <CardContent className="p-8 space-y-6">
                                 <div>
-                                    <h3 className="text-2xl font-bold mb-2 flex items-center gap-2">
-                                        <Palette className="w-6 h-6 text-primary" />
+                                    <h3 className="text-2xl font-bold mb-2">
                                         Color Analysis
                                     </h3>
                                     <p className="text-muted-foreground text-sm">Detected color palette from your room</p>
@@ -377,9 +364,6 @@ export function AnalysisResults({ analysis, ceilingHeight, imageFile, defaultTab
                                         <div>
                                             <p className="text-sm text-muted-foreground mb-1">Color Mood</p>
                                             <p className="text-2xl font-bold capitalize">{analysis.colorPalette.mood}</p>
-                                        </div>
-                                        <div className="text-5xl">
-                                            {analysis.colorPalette.mood}
                                         </div>
                                     </div>
                                 </div>
@@ -423,7 +407,6 @@ export function AnalysisResults({ analysis, ceilingHeight, imageFile, defaultTab
                                         <ul className="space-y-2">
                                             {analysis.recommendations.colors.map((recommendation, i) => (
                                                 <li key={i} className="flex items-start gap-2 text-sm">
-                                                    <span className="text-primary mt-1">✓</span>
                                                     <span>{recommendation}</span>
                                                 </li>
                                             ))}

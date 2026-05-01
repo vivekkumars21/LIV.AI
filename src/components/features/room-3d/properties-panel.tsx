@@ -35,34 +35,33 @@ export function PropertiesPanel({
   };
 
   return (
-    <div className="absolute right-0 top-0 z-20 flex h-full w-[260px] flex-col border-l border-white/20 bg-white/90 backdrop-blur-md">
+    <div className="absolute right-0 top-0 z-20 flex h-full w-[260px] flex-col border-l border-white/30 bg-white/10 backdrop-blur-2xl shadow-2xl">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-white/20 p-4">
-        <h3 className="text-sm font-semibold text-foreground">Properties</h3>
+      <div className="flex items-center justify-between border-b border-white/10 p-4">
+        <h3 className="text-sm font-semibold uppercase tracking-widest text-white/80">Properties</h3>
         <button
           onClick={onClose}
-          className="rounded-lg p-1 text-muted-foreground hover:bg-white/50 hover:text-foreground">
-          <X className="h-4 w-4" />
+          className="rounded-lg px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white/50 hover:bg-white/10 hover:text-white transition-all">
+          Close
         </button>
       </div>
 
       {/* Item Info */}
-      <div className="border-b border-white/20 p-4">
-        <p className="text-sm font-medium text-foreground">{item.name}</p>
-        <p className="mt-1 text-xs text-muted-foreground">ID: {item.id.slice(-8)}</p>
+      <div className="border-b border-white/10 p-4 bg-white/5">
+        <p className="text-sm font-semibold text-white">{item.name}</p>
+        <p className="mt-1 text-[10px] uppercase tracking-wider text-white/40">Ref: {item.id.slice(-8)}</p>
       </div>
 
       {/* Position */}
-      <div className="border-b border-white/20 p-4">
-        <h4 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          <Move className="h-3 w-3" />
+      <div className="border-b border-white/10 p-4">
+        <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
           Position
         </h4>
         <div className="grid grid-cols-3 gap-2">
           {(["x", "y", "z"] as const).map((axis) => (
             <div key={axis} className="text-center">
-              <div className="text-[10px] uppercase text-muted-foreground/60">{axis}</div>
-              <div className="mt-0.5 rounded-lg bg-white/50 px-1.5 py-1 font-mono text-xs text-foreground backdrop-blur-sm">
+              <div className="text-[9px] font-bold uppercase text-white/30">{axis}</div>
+              <div className="mt-1 rounded-lg bg-white/5 border border-white/10 px-1.5 py-1.5 font-mono text-xs text-white backdrop-blur-md">
                 {item.position[axis === "x" ? "x" : axis === "y" ? "y" : "z"].toFixed(2)}
               </div>
             </div>
@@ -71,95 +70,119 @@ export function PropertiesPanel({
       </div>
 
       {/* Dimensions */}
-      <div className="border-b border-white/20 p-4">
-        <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Dimensions (m)
+      <div className="border-b border-white/10 p-4">
+        <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
+          Dimensions
         </h4>
-        <div className="grid grid-cols-3 gap-2 text-xs">
-          <div className="text-center">
-            <div className="text-[10px] text-muted-foreground/60">Width</div>
-            <div className="mt-0.5 font-mono text-foreground">{scaledDims.width}</div>
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div>
+            <div className="text-[9px] font-bold uppercase text-white/30">Width</div>
+            <div className="mt-1 font-mono text-xs text-white/80">{scaledDims.width}m</div>
           </div>
-          <div className="text-center">
-            <div className="text-[10px] text-muted-foreground/60">Height</div>
-            <div className="mt-0.5 font-mono text-foreground">{scaledDims.height}</div>
+          <div>
+            <div className="text-[9px] font-bold uppercase text-white/30">Height</div>
+            <div className="mt-1 font-mono text-xs text-white/80">{scaledDims.height}m</div>
           </div>
-          <div className="text-center">
-            <div className="text-[10px] text-muted-foreground/60">Depth</div>
-            <div className="mt-0.5 font-mono text-foreground">{scaledDims.depth}</div>
+          <div>
+            <div className="text-[9px] font-bold uppercase text-white/30">Depth</div>
+            <div className="mt-1 font-mono text-xs text-white/80">{scaledDims.depth}m</div>
           </div>
         </div>
       </div>
 
       {/* Rotation */}
-      <div className="border-b border-white/20 p-4">
-        <h4 className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          <RotateCw className="h-3 w-3" />
-          Rotate
+      <div className="border-b border-white/10 p-4">
+        <h4 className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
+          Orientation
         </h4>
-        <div className="grid grid-cols-4 gap-1.5">
+        <div className="grid grid-cols-4 gap-2 mb-4">
           {[-90, -45, 45, 90].map((deg) => (
             <Button
               key={deg}
               size="sm"
               variant="outline"
               onClick={() => onRotate(deg)}
-              className="border-white/20 bg-white/50 text-xs text-foreground hover:bg-white/80 backdrop-blur-sm"
+              className="border-white/10 bg-white/5 text-[10px] text-white hover:bg-white/20 backdrop-blur-md h-8"
             >
               {deg > 0 ? "+" : ""}
               {deg}°
             </Button>
           ))}
         </div>
-        <p className="mt-2 text-center font-mono text-xs text-muted-foreground">
-          {((item.rotation * 180) / Math.PI).toFixed(0)}°
-        </p>
+
+        {/* Rotation Slider */}
+        <div className="space-y-2">
+          <input
+            type="range"
+            min="0"
+            max="359"
+            value={Math.round(((item.rotation * 180) / Math.PI) % 360)}
+            onChange={(e) => {
+              const currentDeg = ((item.rotation * 180) / Math.PI) % 360;
+              const nextDeg = parseInt(e.target.value);
+              onRotate(nextDeg - currentDeg);
+            }}
+            className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
+          />
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase text-white/30 tracking-wider">Fine-tune</span>
+            <div className="flex items-center gap-1">
+              <input
+                type="number"
+                value={Math.round(((item.rotation * 180) / Math.PI) % 360)}
+                onChange={(e) => {
+                  const currentDeg = ((item.rotation * 180) / Math.PI) % 360;
+                  const nextDeg = parseInt(e.target.value) || 0;
+                  onRotate(nextDeg - currentDeg);
+                }}
+                className="w-12 bg-white/5 border border-white/10 rounded-lg px-1 py-1 text-[10px] font-mono text-center text-white focus:outline-none focus:border-white/30"
+              />
+              <span className="text-[10px] text-white/40">°</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Scale */}
-      <div className="border-b border-white/20 p-4">
-        <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="border-b border-white/10 p-4">
+        <h4 className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
           Scale
         </h4>
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex items-center justify-center gap-4">
           <Button
             size="sm"
             variant="outline"
             onClick={() => onScale(0.9)}
-            className="border-white/20 bg-white/50 text-foreground hover:bg-white/80 backdrop-blur-sm"
+            className="border-white/10 bg-white/5 text-[10px] text-white hover:bg-white/20 backdrop-blur-md h-8"
           >
-            <Minimize2 className="h-3.5 w-3.5" />
+            Smaller
           </Button>
-          <span className="font-mono text-sm text-foreground">
+          <span className="font-mono text-xs font-bold text-white/80">
             {(item.scale.x * 100).toFixed(0)}%
           </span>
           <Button
             size="sm"
             variant="outline"
             onClick={() => onScale(1.1)}
-            className="border-white/20 bg-white/50 text-foreground hover:bg-white/80 backdrop-blur-sm"
+            className="border-white/10 bg-white/5 text-[10px] text-white hover:bg-white/20 backdrop-blur-md h-8"
           >
-            <Maximize2 className="h-3.5 w-3.5" />
+            Larger
           </Button>
         </div>
       </div>
 
-      {/* Actions */}
       <div className="mt-auto p-4">
         <Button
           onClick={onRemove}
           variant="outline"
-          className="w-full border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20"
+          className="w-full border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 text-[10px] font-bold uppercase tracking-widest"
         >
-          <Trash2 className="mr-2 h-4 w-4" />
           Remove Item
         </Button>
       </div>
 
-      {/* Keyboard Shortcuts */}
-      <div className="border-t border-white/20 p-3">
-        <p className="text-[10px] text-muted-foreground/60">
-          R — Rotate 45° · Del — Remove · P — Point cloud
+      <div className="border-t border-white/10 p-4">
+        <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 text-center">
+          R — Rotate · Del — Remove · P — Cloud
         </p>
       </div>
     </div>

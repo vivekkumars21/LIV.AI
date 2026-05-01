@@ -38,149 +38,194 @@ export interface PlacedFurniture {
 }
 
 // Furniture catalog with procedurally generated 3D models as fallback
+// Furniture catalog with procedurally generated 3D models as fallback
 export const FURNITURE_CATALOG: FurnitureItem[] = [
   // Sofas
   {
     id: "sofa-modern-3seat",
-    name: "Modern 3-Seat Sofa",
+    name: "Aalto 3-Seat Sofa",
     category: "Sofas",
     dimensions: { width: 2.2, height: 0.85, depth: 0.95 },
     price: 45000,
-    material: "Fabric",
+    material: "Performance Linen",
+    thumbnailUrl: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=400&q=80"
   },
   {
     id: "sofa-l-shaped",
-    name: "L-Shaped Corner Sofa",
+    name: "Nordic Corner Sectional",
     category: "Sofas",
     dimensions: { width: 2.8, height: 0.85, depth: 1.8 },
-    price: 65000,
-    material: "Leather",
+    price: 85000,
+    material: "Top-grain Leather",
+    thumbnailUrl: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=400&q=80"
+  },
+  {
+    id: "sofa-loveseat",
+    name: "Urban Loveseat",
+    category: "Sofas",
+    dimensions: { width: 1.6, height: 0.8, depth: 0.9 },
+    price: 32000,
+    material: "Velvet",
+    thumbnailUrl: "https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&w=400&q=80"
   },
   // Chairs
   {
     id: "chair-accent",
-    name: "Accent Chair",
+    name: "Eames-Style Accent Chair",
     category: "Chairs",
     dimensions: { width: 0.75, height: 0.9, depth: 0.8 },
-    price: 12000,
-    material: "Fabric",
+    price: 18000,
+    material: "Bentwood & Leather",
+    thumbnailUrl: "https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&w=400&q=80"
   },
   {
     id: "chair-office",
-    name: "Office Chair",
+    name: "ErgoPro Task Chair",
     category: "Chairs",
     dimensions: { width: 0.65, height: 1.1, depth: 0.65 },
-    price: 8500,
-    material: "Mesh",
+    price: 12500,
+    material: "Recycled Mesh",
+    thumbnailUrl: "https://images.unsplash.com/photo-1505797149-43b007664973?auto=format&fit=crop&w=400&q=80"
   },
   {
     id: "chair-dining",
-    name: "Dining Chair",
+    name: "Solid Oak Dining Chair",
     category: "Chairs",
     dimensions: { width: 0.45, height: 0.85, depth: 0.5 },
-    price: 4500,
-    material: "Wood",
+    price: 6500,
+    material: "White Oak",
+    thumbnailUrl: "https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=400&q=80"
+  },
+  {
+    id: "chair-lounge",
+    name: "Mid-Century Lounge Chair",
+    category: "Chairs",
+    dimensions: { width: 0.85, height: 0.8, depth: 0.85 },
+    price: 24000,
+    material: "Walnut & Wool",
+    thumbnailUrl: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?auto=format&fit=crop&w=400&q=80"
   },
   // Tables
   {
     id: "table-coffee",
-    name: "Coffee Table",
+    name: "Noguchi-Style Coffee Table",
     category: "Tables",
-    dimensions: { width: 1.2, height: 0.45, depth: 0.6 },
-    price: 15000,
-    material: "Wood & Glass",
+    dimensions: { width: 1.2, height: 0.4, depth: 0.8 },
+    price: 22000,
+    material: "Tempered Glass & Ash",
+    thumbnailUrl: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&w=400&q=80"
   },
   {
     id: "table-dining-6",
-    name: "6-Seat Dining Table",
+    name: "Gather 6-Seat Dining Table",
     category: "Tables",
     dimensions: { width: 1.8, height: 0.76, depth: 0.9 },
-    price: 35000,
-    material: "Solid Wood",
+    price: 48000,
+    material: "Solid Walnut",
+    thumbnailUrl: "https://images.unsplash.com/photo-1577140917170-285929fb55b7?auto=format&fit=crop&w=400&q=80"
   },
   {
     id: "table-side",
-    name: "Side Table",
+    name: "Minimalist End Table",
     category: "Tables",
-    dimensions: { width: 0.5, height: 0.55, depth: 0.5 },
-    price: 6000,
-    material: "Metal & Wood",
+    dimensions: { width: 0.45, height: 0.5, depth: 0.45 },
+    price: 8500,
+    material: "Powder-coated Steel",
+    thumbnailUrl: "https://images.unsplash.com/photo-1551216223-37c8d1dbec5c?auto=format&fit=crop&w=400&q=80"
+  },
+  {
+    id: "table-desk",
+    name: "Studio Work Desk",
+    category: "Tables",
+    dimensions: { width: 1.4, height: 0.75, depth: 0.7 },
+    price: 15000,
+    material: "Maple Veneer",
+    thumbnailUrl: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=400&q=80"
   },
   // Beds
   {
     id: "bed-queen",
-    name: "Queen Bed Frame",
+    name: "Zen Queen Platform Bed",
     category: "Beds",
-    dimensions: { width: 1.6, height: 1.1, depth: 2.1 },
-    price: 28000,
-    material: "Engineered Wood",
+    dimensions: { width: 1.6, height: 1.0, depth: 2.1 },
+    price: 35000,
+    material: "Stained Pine",
+    thumbnailUrl: "https://images.unsplash.com/photo-1505693314120-0d4438678217?auto=format&fit=crop&w=400&q=80"
   },
   {
     id: "bed-king",
-    name: "King Bed Frame",
+    name: "Monolith King Bed",
     category: "Beds",
-    dimensions: { width: 1.9, height: 1.1, depth: 2.1 },
-    price: 38000,
-    material: "Solid Wood",
+    dimensions: { width: 1.9, height: 1.1, depth: 2.2 },
+    price: 52000,
+    material: "Upholstered Headboard",
+    thumbnailUrl: "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=400&q=80"
   },
-  // Lamps
+  // Lighting
   {
     id: "lamp-floor",
-    name: "Floor Lamp",
+    name: "Arc Floor Lamp",
     category: "Lamps",
-    dimensions: { width: 0.35, height: 1.6, depth: 0.35 },
-    price: 5500,
-    material: "Metal",
+    dimensions: { width: 0.4, height: 1.8, depth: 1.2 },
+    price: 9500,
+    material: "Brushed Nickel",
+    thumbnailUrl: "https://images.unsplash.com/photo-1507473885765-e6ed657f9971?auto=format&fit=crop&w=400&q=80"
   },
   {
     id: "lamp-table",
-    name: "Table Lamp",
+    name: "Globe Table Lamp",
     category: "Lamps",
-    dimensions: { width: 0.25, height: 0.5, depth: 0.25 },
-    price: 3200,
-    material: "Ceramic",
+    dimensions: { width: 0.25, height: 0.45, depth: 0.25 },
+    price: 4200,
+    material: "Opal Glass",
+    thumbnailUrl: "https://images.unsplash.com/photo-1534073828943-f801091bb18c?auto=format&fit=crop&w=400&q=80"
+  },
+  // Storage
+  {
+    id: "cabinet-bookshelf",
+    name: "Modular Library Unit",
+    category: "Cabinets",
+    dimensions: { width: 0.9, height: 2.0, depth: 0.3 },
+    price: 14000,
+    material: "Birch Plywood",
+    thumbnailUrl: "https://images.unsplash.com/photo-1594620302200-9a7622d4a13c?auto=format&fit=crop&w=400&q=80"
+  },
+  {
+    id: "cabinet-tv-unit",
+    name: "Floating Media Console",
+    category: "Cabinets",
+    dimensions: { width: 1.8, height: 0.4, depth: 0.4 },
+    price: 21000,
+    material: "Matte Lacquer",
+    thumbnailUrl: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=400&q=80"
+  },
+  {
+    id: "cabinet-wardrobe",
+    name: "Linear 2-Door Wardrobe",
+    category: "Cabinets",
+    dimensions: { width: 1.2, height: 2.1, depth: 0.6 },
+    price: 38000,
+    material: "Oak Laminate",
+    thumbnailUrl: "https://images.unsplash.com/photo-1558997519-83ea9252edf8?auto=format&fit=crop&w=400&q=80"
   },
   // Plants
   {
     id: "plant-fiddle",
-    name: "Fiddle Leaf Fig",
+    name: "Fiddle Leaf Fig (Large)",
     category: "Plants",
-    dimensions: { width: 0.4, height: 1.2, depth: 0.4 },
-    price: 2800,
+    dimensions: { width: 0.6, height: 1.6, depth: 0.6 },
+    price: 3500,
     material: "Natural",
+    thumbnailUrl: "https://images.unsplash.com/photo-1597072689227-8882273e8f6a?auto=format&fit=crop&w=400&q=80"
   },
   {
     id: "plant-monstera",
-    name: "Monstera Plant",
+    name: "Monstera Deliciosa",
     category: "Plants",
     dimensions: { width: 0.5, height: 0.8, depth: 0.5 },
-    price: 1500,
+    price: 1800,
     material: "Natural",
-  },
-  // Cabinets
-  {
-    id: "cabinet-bookshelf",
-    name: "Bookshelf",
-    category: "Cabinets",
-    dimensions: { width: 0.8, height: 1.8, depth: 0.35 },
-    price: 12000,
-    material: "Engineered Wood",
-  },
-  {
-    id: "cabinet-tv-unit",
-    name: "TV Unit",
-    category: "Cabinets",
-    dimensions: { width: 1.6, height: 0.5, depth: 0.4 },
-    price: 18000,
-    material: "Engineered Wood",
-  },
-  {
-    id: "cabinet-wardrobe",
-    name: "Wardrobe",
-    category: "Cabinets",
-    dimensions: { width: 1.5, height: 2.0, depth: 0.6 },
-    price: 25000,
-    material: "Engineered Wood",
+    thumbnailUrl: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=400&q=80"
   },
 ];
 
@@ -332,10 +377,10 @@ export class FurnitureManager {
 
       // Wall snapping (if within 0.3m of a wall)
       const snapDist = 0.3;
-      if (x - this.roomBounds.minX < snapDist + hw) x = this.roomBounds.minX + hw + 0.02;
-      if (this.roomBounds.maxX - x < snapDist + hw) x = this.roomBounds.maxX - hw - 0.02;
-      if (z - this.roomBounds.minZ < snapDist + hd) z = this.roomBounds.minZ + hd + 0.02;
-      if (this.roomBounds.maxZ - z < snapDist + hd) z = this.roomBounds.maxZ - hd - 0.02;
+      if (x - this.roomBounds.minX < snapDist + hw) x = this.roomBounds.minX + hw;
+      if (this.roomBounds.maxX - x < snapDist + hw) x = this.roomBounds.maxX - hw;
+      if (z - this.roomBounds.minZ < snapDist + hd) z = this.roomBounds.minZ + hd;
+      if (this.roomBounds.maxZ - z < snapDist + hd) z = this.roomBounds.maxZ - hd;
 
       this.ghostMesh.position.set(x, 0, z);
     }
@@ -575,7 +620,7 @@ export class FurnitureManager {
     const legR = 0.025;
     [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => {
       const leg = new THREE.Mesh(
-        new THREE.CylinderGeometry(legR, legR, seatH),
+        new THREE.CylinderGeometry(legR, legR, seatH, 16),
         legMat
       );
       leg.position.set(
@@ -618,7 +663,7 @@ export class FurnitureManager {
     const legR = 0.03;
     [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => {
       const leg = new THREE.Mesh(
-        new THREE.CylinderGeometry(legR, legR, legH),
+        new THREE.CylinderGeometry(legR, legR, legH, 16),
         legMat
       );
       leg.position.set(
@@ -653,7 +698,7 @@ export class FurnitureManager {
     // Frame base
     const frameH = 0.35;
     const frame = new THREE.Mesh(
-      new THREE.BoxGeometry(w + 0.1, frameH, d + 0.05),
+      new THREE.BoxGeometry(w, frameH, d),
       frameMat
     );
     frame.position.set(0, frameH / 2, 0);
@@ -662,18 +707,19 @@ export class FurnitureManager {
     // Mattress
     const mattressH = 0.2;
     const mattress = new THREE.Mesh(
-      new THREE.BoxGeometry(w - 0.02, mattressH, d - 0.1),
+      new THREE.BoxGeometry(w * 0.98, mattressH, d * 0.95),
       mattressMat
     );
-    mattress.position.set(0, frameH + mattressH / 2, 0.02);
+    mattress.position.set(0, frameH + mattressH / 2, -0.02);
     group.add(mattress);
 
     // Headboard
+    const headboardH = h - frameH;
     const headboard = new THREE.Mesh(
-      new THREE.BoxGeometry(w + 0.1, h - frameH, 0.08),
+      new THREE.BoxGeometry(w, headboardH, 0.08),
       frameMat
     );
-    headboard.position.set(0, frameH + (h - frameH) / 2, -d / 2);
+    headboard.position.set(0, frameH + headboardH / 2, -d / 2 + 0.04);
     group.add(headboard);
 
     // Pillows
@@ -686,7 +732,7 @@ export class FurnitureManager {
       pillow.position.set(
         side * (w / 4),
         frameH + mattressH + 0.05,
-        -d / 2 + 0.3
+        -d / 2 + 0.4
       );
       group.add(pillow);
     });
@@ -714,7 +760,7 @@ export class FurnitureManager {
 
     // Base
     const base = new THREE.Mesh(
-      new THREE.CylinderGeometry(w * 0.4, w * 0.5, 0.05, 16),
+      new THREE.CylinderGeometry(w * 0.4, w * 0.5, 0.05, 32),
       baseMat
     );
     base.position.set(0, 0.025, 0);
@@ -730,7 +776,7 @@ export class FurnitureManager {
 
     // Shade (cone)
     const shade = new THREE.Mesh(
-      new THREE.ConeGeometry(w * 0.5, h * 0.3, 16, 1, true),
+      new THREE.ConeGeometry(w * 0.5, h * 0.3, 32, 1, true),
       shadeMat
     );
     shade.position.set(0, h * 0.8, 0);
@@ -738,7 +784,7 @@ export class FurnitureManager {
 
     // Light bulb (emissive sphere)
     const bulb = new THREE.Mesh(
-      new THREE.SphereGeometry(0.03, 8, 8),
+      new THREE.SphereGeometry(0.03, 16, 16),
       new THREE.MeshStandardMaterial({
         color: 0xffee88,
         emissive: 0xffee88,
@@ -774,7 +820,7 @@ export class FurnitureManager {
 
     // Pot
     const pot = new THREE.Mesh(
-      new THREE.CylinderGeometry(w * 0.3, w * 0.25, h * 0.25, 12),
+      new THREE.CylinderGeometry(w * 0.3, w * 0.25, h * 0.25, 24),
       potMat
     );
     pot.position.set(0, h * 0.125, 0);
@@ -799,7 +845,7 @@ export class FurnitureManager {
     foliagePositions.forEach(([x, y, z], i) => {
       const size = w * (0.2 + Math.random() * 0.15);
       const leaf = new THREE.Mesh(
-        new THREE.SphereGeometry(size, 8, 6),
+        new THREE.SphereGeometry(size, 24, 16),
         leafMat.clone()
       );
       (leaf.material as THREE.MeshStandardMaterial).color.setHex(

@@ -507,7 +507,7 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                             }`}
                     />
                     {backendStatus === 'online'
-                        ? 'Python Backend Online (GPU)'
+                        ? 'Python Backend Online'
                         : backendStatus === 'checking'
                             ? 'Checking...'
                             : 'Python Backend Offline'}
@@ -518,14 +518,13 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                             Using JS fallback engine
                         </span>
                         <Button variant="ghost" size="sm" onClick={checkBackend}>
-                            <RotateCw className="h-3 w-3 mr-1" />
                             Retry
                         </Button>
                     </div>
                 )}
                 {isCalibrated && (
-                    <Badge variant="outline" className="gap-1 border-green-500/50 text-green-400">
-                        <CheckCircle2 className="h-3 w-3" /> Calibrated
+                    <Badge variant="outline" className="border-green-500/50 text-green-400">
+                        Calibrated
                     </Badge>
                 )}
             </div>
@@ -534,8 +533,7 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
             {backendStatus === 'online' && imageFile && (
                 <Card className="border-blue-500/20 bg-blue-950/10">
                     <CardHeader className="pb-3">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                            <Sparkles className="h-5 w-5 text-blue-400" />
+                        <CardTitle className="text-lg">
                             AI Depth & Object Analysis
                         </CardTitle>
                     </CardHeader>
@@ -553,8 +551,7 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                                     </>
                                 ) : (
                                     <>
-                                        <Eye className="mr-2 h-4 w-4" />
-                                        Run Advanced Analysis (GPU)
+                                        Run Advanced Analysis
                                     </>
                                 )}
                             </Button>
@@ -636,7 +633,6 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
 
                                 {/* Estimated Room Dimensions */}
                                 <Alert>
-                                    <Maximize className="h-4 w-4" />
                                     <AlertDescription>
                                         <span className="font-semibold">Estimated Room:</span>{' '}
                                         {analysisResult.measurement.room.width}m × {analysisResult.measurement.room.length}m × {analysisResult.measurement.room.height}m
@@ -658,11 +654,10 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                 <Card className="border-purple-500/20 bg-purple-950/10">
                     <CardHeader className="pb-3">
                         <CardTitle className="text-lg flex items-center gap-2">
-                            <Crosshair className="h-5 w-5 text-purple-400" />
                             Calibration Tool
                             {isCalibrated && (
                                 <Badge variant="outline" className="text-xs border-green-500/50 text-green-400">
-                                    ✓ Active
+                                    Active
                                 </Badge>
                             )}
                         </CardTitle>
@@ -678,7 +673,6 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                                 onClick={() => setIsCalibrating(true)}
                                 className="w-full border-purple-500/30 hover:border-purple-500/60"
                             >
-                                <Target className="mr-2 h-4 w-4" />
                                 Start Calibration
                             </Button>
                         )}
@@ -693,12 +687,10 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                                 />
 
                                 <div className="flex items-center gap-2 text-xs">
-                                    <Badge variant={calPoint1 ? 'default' : 'outline'} className="gap-1">
-                                        {calPoint1 ? <CheckCircle2 className="h-3 w-3" /> : '1.'}
+                                    <Badge variant={calPoint1 ? 'default' : 'outline'}>
                                         Point A {calPoint1 ? `(${calPoint1.x}, ${calPoint1.y})` : '— click image'}
                                     </Badge>
-                                    <Badge variant={calPoint2 ? 'default' : 'outline'} className="gap-1">
-                                        {calPoint2 ? <CheckCircle2 className="h-3 w-3" /> : '2.'}
+                                    <Badge variant={calPoint2 ? 'default' : 'outline'}>
                                         Point B {calPoint2 ? `(${calPoint2.x}, ${calPoint2.y})` : '— click image'}
                                     </Badge>
                                 </div>
@@ -743,7 +735,6 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                                     onClick={analyzeImage}
                                     disabled={isAnalyzing}
                                 >
-                                    <RotateCw className="mr-1 h-3 w-3" />
                                     Re-analyze with calibration
                                 </Button>
                             </div>
@@ -755,8 +746,7 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
             {/* Room Dimensions (Manual / Override) */}
             <Card className="border-border/50">
                 <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                        <Ruler className="h-5 w-5 text-orange-400" />
+                    <CardTitle className="text-lg">
                         Room Dimensions
                     </CardTitle>
                 </CardHeader>
@@ -802,8 +792,7 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
             {/* ── Placement Configuration ── */}
             <Card className="border-green-500/20 bg-green-950/10">
                 <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                        <Target className="h-5 w-5 text-green-400" />
+                    <CardTitle className="text-lg">
                         Furniture Placement
                     </CardTitle>
                 </CardHeader>
@@ -872,7 +861,6 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                             </>
                         ) : (
                             <>
-                                <Ruler className="mr-2 h-4 w-4" />
                                 Check Placement
                             </>
                         )}
@@ -891,17 +879,11 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                             }`}
                     >
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-lg flex items-center gap-2">
+                            <CardTitle className="text-lg">
                                 {placementResult.fits ? (
-                                    <>
-                                        <CheckCircle2 className="h-5 w-5 text-green-400" />
-                                        <span className="text-green-400">Placement Possible</span>
-                                    </>
+                                    <span className="text-green-400">Placement Possible</span>
                                 ) : (
-                                    <>
-                                        <XCircle className="h-5 w-5 text-red-400" />
-                                        <span className="text-red-400">Does Not Fit</span>
-                                    </>
+                                    <span className="text-red-400">Does Not Fit</span>
                                 )}
                             </CardTitle>
                         </CardHeader>
@@ -939,21 +921,19 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                             <div className="p-3 rounded-md bg-muted/20 space-y-1">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Estimated Cost</span>
-                                    <span className="font-semibold flex items-center gap-0.5">
-                                        <IndianRupee className="h-3 w-3" />
-                                        {placementResult.budget_analysis.estimated_cost.toLocaleString('en-IN')}
+                                    <span className="font-semibold">
+                                        ₹{placementResult.budget_analysis.estimated_cost.toLocaleString('en-IN')}
                                     </span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Remaining Budget</span>
                                     <span
-                                        className={`font-semibold flex items-center gap-0.5 ${placementResult.budget_analysis.remaining_budget > 0
+                                        className={`font-semibold ${placementResult.budget_analysis.remaining_budget > 0
                                             ? 'text-green-400'
                                             : 'text-red-400'
                                             }`}
                                     >
-                                        <IndianRupee className="h-3 w-3" />
-                                        {placementResult.budget_analysis.remaining_budget.toLocaleString('en-IN')}
+                                        ₹{placementResult.budget_analysis.remaining_budget.toLocaleString('en-IN')}
                                     </span>
                                 </div>
                             </div>
@@ -962,7 +942,6 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                             {placementResult.budget_analysis.suggestions &&
                                 placementResult.budget_analysis.suggestions.length > 0 && (
                                     <Alert>
-                                        <AlertCircle className="h-4 w-4" />
                                         <AlertDescription className="text-xs whitespace-pre-wrap">
                                             {placementResult.budget_analysis.suggestions.join('\n')}
                                         </AlertDescription>
@@ -979,8 +958,7 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                     {/* Mini-map */}
                     <Card className="border-border/50">
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <Maximize className="h-5 w-5 text-blue-400" />
+                            <CardTitle className="text-lg">
                                 Room Layout (Top View)
                             </CardTitle>
                         </CardHeader>

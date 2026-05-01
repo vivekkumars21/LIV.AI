@@ -18,7 +18,6 @@ import { PropertiesPanel } from "./properties-panel";
 import { Toolbar } from "./toolbar";
 import { Minimap } from "./minimap";
 import { UploadModal } from "./upload-modal";
-import { products, parseDimensionsMetric, type Product } from "@/lib/products";
 
 export type ViewMode = "walkthrough" | "orbit" | "topdown";
 
@@ -53,70 +52,28 @@ export function Room3DViewer() {
   const [viewMode, setViewMode] = useState<ViewMode>("walkthrough");
 
   const [dbFurniture, setDbFurniture] = useState<FurnitureItem[]>([]);
-  const [dbProducts, setDbProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     const loadCatalog = async () => {
       try {
-        const [furnitureRes, productsRes] = await Promise.all([
-          fetch("/api/furniture"),
-          fetch("/api/products?limit=300")
-        ]);
-        
-        if (furnitureRes.ok) {
-          const data = await furnitureRes.json();
+        const res = await fetch("/api/python/furniture");
+        if (res.ok) {
+          const data = await res.json();
           if (Array.isArray(data)) setDbFurniture(data);
         }
-        
-        if (productsRes.ok) {
-          const data = await productsRes.json();
-          if (Array.isArray(data)) setDbProducts(data);
-        }
       } catch (err) {
-        console.warn("Catalog fetch failed, using fallbacks:", err);
+        console.warn("Furniture API unavailable, using static catalog:", err);
       }
     };
     loadCatalog();
   }, []);
 
+  // 3D Planner Catalog — uses ONLY the curated procedural 3D models.
+  // The shop (/shop) has its own separate product catalog.
   const plannerCatalog = useMemo(() => {
-    const categoryMap: Record<string, string> = {
-      Sofas: "Sofas",
-      Tables: "Tables",
-      Beds: "Beds",
-      Lighting: "Lamps",
-      Decor: "Cabinets",
-      Storage: "Cabinets",
-    };
-
-    const ecommerceItems = dbProducts
-      .map<FurnitureItem | null>((product) => {
-        const dims = parseDimensionsMetric(product.dimensions);
-        if (!dims) return null;
-
-        return {
-          id: `store-${product.id}`,
-          name: product.name,
-          category: categoryMap[product.category] ?? "Cabinets",
-          thumbnailUrl: product.image,
-          dimensions: {
-            width: Math.max(dims.width, 0.25),
-            height: Math.max(dims.height, 0.25),
-            depth: Math.max(dims.depth, 0.2),
-          },
-          price: product.price,
-          material: product.material,
-        };
-      })
-      .filter((item): item is FurnitureItem => item !== null);
-
-    const items = [...dbFurniture, ...FURNITURE_CATALOG, ...ecommerceItems];
-    // Filter out duplicates if any (based on ID)
-    const uniqueItems = Array.from(new Map(items.map(item => [item.id, item])).values());
-    const categories = Array.from(new Set(uniqueItems.map((item) => item.category)));
-
-    return { items: uniqueItems, categories };
-  }, [dbFurniture, dbProducts]);
+    const categories = Array.from(new Set(FURNITURE_CATALOG.map((item) => item.category)));
+    return { items: FURNITURE_CATALOG, categories };
+  }, []);
 
   // Initialize Three.js scene
   useEffect(() => {
@@ -247,7 +204,7 @@ export function Room3DViewer() {
 
         setLoadingMessage("AI is analyzing your room...");
 
-        const response = await fetch("/api/reconstruct", {
+        const response = await fetch("/api/python/reconstruct", {
           method: "POST",
           body: formData,
         });
@@ -575,7 +532,7 @@ export function Room3DViewer() {
 
   const handleLoadLatestProject = useCallback(async () => {
     try {
-      const listResponse = await fetch("/api/projects?limit=1", {
+      const listResponse = await fetch("/api/python/projects?limit=1", {
         headers: getProjectRequestHeaders(),
       });
       if (!listResponse.ok) return;
@@ -587,7 +544,7 @@ export function Room3DViewer() {
       }
 
       const id = list[0].id;
-      const detailResponse = await fetch(`/api/projects/${id}`, {
+      const detailResponse = await fetch(`/api/python/projects/${id}`, {
         headers: getProjectRequestHeaders(),
       });
       if (!detailResponse.ok) return;
@@ -615,7 +572,7 @@ export function Room3DViewer() {
     };
 
     try {
-      const response = await fetch(projectId ? `/api/projects/${projectId}` : "/api/projects", {
+      const response = await fetch(projectId ? `/api/python/projects/${projectId}` : "/api/python/projects", {
         method: projectId ? "PUT" : "POST",
         headers: getProjectRequestHeaders(),
         body: JSON.stringify(payload),
@@ -660,7 +617,7 @@ export function Room3DViewer() {
 
       const camera = sceneManagerRef.current.camera;
       const currentPos = camera.position.clone();
-      
+
       // Exit pointer lock if in walkthrough mode
       if (viewMode === "walkthrough" && document.pointerLockElement) {
         document.exitPointerLock();
@@ -672,7 +629,7 @@ export function Room3DViewer() {
         // Switch to first-person controls
         controlsRef.current.setEnabled(true);
         orbitControlsRef.current.setEnabled(false);
-        
+
         // Position camera at eye level if coming from other modes
         if (viewMode !== "walkthrough") {
           camera.position.y = 1.6;
@@ -681,13 +638,13 @@ export function Room3DViewer() {
         // Switch to orbit controls
         controlsRef.current.setEnabled(false);
         orbitControlsRef.current.setEnabled(true);
-        
+
         // Set orbit target to room center
         if (roomData) {
           const dims = roomData.dimensions;
           orbitControlsRef.current.setTarget(0, dims.height / 2, dims.length / 2);
         }
-        
+
         // Position camera for good orbit view
         if (viewMode === "walkthrough") {
           camera.position.set(
@@ -700,7 +657,7 @@ export function Room3DViewer() {
         // Switch to orbit controls in top-down configuration
         controlsRef.current.setEnabled(false);
         orbitControlsRef.current.setEnabled(true);
-        
+
         // Set camera directly above room center
         if (roomData) {
           const dims = roomData.dimensions;
@@ -792,6 +749,10 @@ export function Room3DViewer() {
         }
         setIsPlacing(false);
       } else if (furnitureManagerRef.current) {
+        // In walkthrough mode, only handle furniture clicks when NOT pointer-locked
+        // (pointer-locked clicks are for FPS look control, not furniture selection)
+        if (viewMode === "walkthrough" && document.pointerLockElement) return;
+
         const selected = furnitureManagerRef.current.handleClick(e.clientX, e.clientY);
         setSelectedFurniture(selected);
         setPropertiesOpen(!!selected);
@@ -842,6 +803,11 @@ export function Room3DViewer() {
       // R to rotate selected
       if (e.key === "r" && selectedFurniture && furnitureManagerRef.current) {
         furnitureManagerRef.current.rotateSelected(45);
+        // Sync state with manager to ensure UI updates correctly
+        const updated = furnitureManagerRef.current.selected;
+        if (updated) {
+          setSelectedFurniture({ ...updated });
+        }
       }
       // Delete to remove selected
       if (
@@ -852,6 +818,7 @@ export function Room3DViewer() {
         furnitureManagerRef.current.removeSelected();
         setPlacedItems(furnitureManagerRef.current.getPlacedItems());
         setSelectedFurniture(null);
+        setPropertiesOpen(false);
       }
       // P to toggle point cloud
       if (e.key === "p" && roomBuilderRef.current) {
@@ -1004,6 +971,9 @@ export function Room3DViewer() {
               <p className="mt-2 text-sm text-muted-foreground">
                 WASD to move · Mouse to look · ESC to exit · Scroll to adjust speed
               </p>
+              <p className="mt-1 text-xs text-muted-foreground/70">
+                Switch to Orbit mode to select, rotate, and move furniture
+              </p>
             </div>
           </div>
         )}
@@ -1013,7 +983,10 @@ export function Room3DViewer() {
           <div className="pointer-events-none absolute bottom-24 left-1/2 -translate-x-1/2">
             <div className="rounded-3xl border border-white/20 bg-white/40 px-6 py-4 text-center shadow-2xl backdrop-blur-md">
               <p className="text-sm text-muted-foreground">
-                Left-drag to rotate · Right-drag to pan · Scroll to zoom
+                Left-drag to rotate view · Right-drag to pan · Scroll to zoom
+              </p>
+              <p className="text-xs text-muted-foreground/70 mt-1">
+                Click furniture to select · R to rotate · Delete to remove
               </p>
             </div>
           </div>
@@ -1062,8 +1035,18 @@ export function Room3DViewer() {
             setPropertiesOpen(false);
             furnitureManagerRef.current?.deselectItem();
           }}
-          onRotate={(deg: number) => furnitureManagerRef.current?.rotateSelected(deg)}
-          onScale={(factor: number) => furnitureManagerRef.current?.scaleSelected(factor)}
+          onRotate={(deg: number) => {
+            furnitureManagerRef.current?.rotateSelected(deg);
+            // Refresh state so properties panel updates the angle display
+            const sel = furnitureManagerRef.current?.selected;
+            if (sel) setSelectedFurniture({ ...sel });
+          }}
+          onScale={(factor: number) => {
+            furnitureManagerRef.current?.scaleSelected(factor);
+            // Refresh state so properties panel updates the scale display
+            const sel = furnitureManagerRef.current?.selected;
+            if (sel) setSelectedFurniture({ ...sel });
+          }}
           onRemove={() => {
             furnitureManagerRef.current?.removeSelected();
             setPlacedItems(furnitureManagerRef.current?.getPlacedItems() ?? []);

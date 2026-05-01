@@ -49,8 +49,12 @@ function ProfessionalCard({ professional }: { professional: Professional }) {
 
             {/* Header */}
             <div className="flex items-start gap-4 mb-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-md flex items-center justify-center font-bold text-xl shrink-0">
-                    {professional.name.charAt(0).toUpperCase()}
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-md flex items-center justify-center font-bold text-xl shrink-0 overflow-hidden">
+                    {professional.image ? (
+                        <img src={professional.image} alt={professional.name} className="w-full h-full object-cover" />
+                    ) : (
+                        professional.name.charAt(0).toUpperCase()
+                    )}
                 </div>
                 <div className="min-w-0 pt-0.5">
                     <h3 className="font-bold text-lg truncate">{professional.name}</h3>
@@ -388,7 +392,7 @@ export default function ProfessionalsPage() {
                                     : 'hover:bg-secondary text-muted-foreground hover:text-foreground'
                                 }`}
                         >
-                            🔍 Find Professionals
+                            Find Professionals
                         </button>
                         <button
                             onClick={() => setActiveTab('register')}
@@ -397,7 +401,7 @@ export default function ProfessionalsPage() {
                                     : 'hover:bg-secondary text-muted-foreground hover:text-foreground'
                                 }`}
                         >
-                            ✨ Register as Professional
+                            Register as Professional
                         </button>
                     </div>
                 </div>
@@ -449,10 +453,10 @@ export default function ProfessionalsPage() {
                                     value={sortBy}
                                     onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
                                 >
-                                    <option value="rating">⭐ Top Rated</option>
-                                    <option value="price_low">💰 Price: Low → High</option>
-                                    <option value="price_high">💰 Price: High → Low</option>
-                                    <option value="experience">📅 Most Experienced</option>
+                                    <option value="rating">Top Rated</option>
+                                    <option value="price_low">Price: Low → High</option>
+                                    <option value="price_high">Price: High → Low</option>
+                                    <option value="experience">Most Experienced</option>
                                 </select>
 
                                 {/* Search Button */}

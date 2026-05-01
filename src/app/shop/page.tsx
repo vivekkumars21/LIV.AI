@@ -18,12 +18,18 @@ export default function ShopPage() {
     useEffect(() => {
         const loadProducts = async () => {
             try {
-                const response = await fetch('/api/products?limit=300', { cache: 'no-store' });
+                const response = await fetch('/api/python/products?limit=300', { cache: 'no-store' });
                 if (!response.ok) return;
                 const raw = await response.text();
                 const data = raw ? JSON.parse(raw) : [];
                 if (Array.isArray(data) && data.length > 0) {
-                    setProducts(data as Product[]);
+                    // Merge API products with local fallback for a complete catalog.
+                    // API products take priority for items with matching names.
+                    const localNames = new Set(localProducts.map(p => p.name.toLowerCase()));
+                    const apiOnly = (data as Product[]).filter(
+                        p => !localNames.has(p.name.toLowerCase())
+                    );
+                    setProducts([...localProducts, ...apiOnly]);
                 }
             } catch {
                 // Keep local fallback catalogue when backend is unavailable.
@@ -57,11 +63,10 @@ export default function ShopPage() {
                         <div>
                             <h3 className="font-semibold mb-4 text-lg">Filters</h3>
                             <div className="relative mb-4">
-                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
                                     type="search"
                                     placeholder="Search products..."
-                                    className="pl-8"
+                                    className="pl-4"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />

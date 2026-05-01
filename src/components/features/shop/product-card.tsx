@@ -50,7 +50,6 @@ export function ProductCard({ product }: ProductCardProps) {
                     {product.description}
                 </p>
                 <Button onClick={handleAddToCart} className="w-full" size="sm">
-                    <ShoppingCart className="w-4 h-4 mr-2" />
                     Add to Cart
                 </Button>
             </div>

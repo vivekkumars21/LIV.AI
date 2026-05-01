@@ -149,10 +149,12 @@ export function Minimap({ roomDimensions, placedItems, cameraRef }: MinimapProps
     <div className="absolute bottom-10 right-4 z-10">
       <canvas
         ref={canvasRef}
-        className="rounded-lg border border-white/10 shadow-xl"
+        className="rounded-2xl border border-white/30 bg-black/20 shadow-2xl backdrop-blur-2xl"
         style={{ width: 160, height: 160 }}
       />
-      <p className="mt-1 text-center text-[9px] text-gray-500">Top View</p>
+      <p className="mt-2 text-center text-[9px] font-black uppercase tracking-widest text-white/30">
+        Live Minimap
+      </p>
     </div>
   );
 }

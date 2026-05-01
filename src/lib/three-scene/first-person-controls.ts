@@ -48,7 +48,7 @@ export class FirstPersonControls {
   private _onKeyDown: (e: KeyboardEvent) => void;
   private _onKeyUp: (e: KeyboardEvent) => void;
   private _onMouseMove: (e: MouseEvent) => void;
-  private _onClick: () => void;
+  private _onMouseDown: (e: MouseEvent) => void;
   private _onPointerlockChange: () => void;
   private _onWheel: (e: WheelEvent) => void;
 
@@ -64,7 +64,7 @@ export class FirstPersonControls {
     this._onKeyDown = this.onKeyDown.bind(this);
     this._onKeyUp = this.onKeyUp.bind(this);
     this._onMouseMove = this.onMouseMove.bind(this);
-    this._onClick = this.onClick.bind(this);
+    this._onMouseDown = this.handleMouseDown.bind(this);
     this._onPointerlockChange = this.onPointerlockChange.bind(this);
     this._onWheel = this.onWheel.bind(this);
 
@@ -75,14 +75,26 @@ export class FirstPersonControls {
     document.addEventListener("keydown", this._onKeyDown);
     document.addEventListener("keyup", this._onKeyUp);
     document.addEventListener("mousemove", this._onMouseMove);
-    this.domElement.addEventListener("click", this._onClick);
+    this.domElement.addEventListener("mousedown", this._onMouseDown);
     document.addEventListener("pointerlockchange", this._onPointerlockChange);
     this.domElement.addEventListener("wheel", this._onWheel, { passive: false });
   }
 
-  private onClick() {
-    if (!this.enabled) return;
-    this.domElement.requestPointerLock();
+  private async handleMouseDown(e: MouseEvent) {
+    if (!this.enabled || this.isLocked || e.button !== 0) return;
+
+    try {
+      const promise = this.domElement.requestPointerLock() as any;
+      if (promise && promise.catch) {
+        promise.catch((err: any) => {
+          if (err.name !== "NotAllowedError") {
+            console.warn("Pointer lock request failed:", err);
+          }
+        });
+      }
+    } catch (err) {
+      console.warn("Pointer lock request failed:", err);
+    }
   }
 
   private onPointerlockChange() {
@@ -280,7 +292,7 @@ export class FirstPersonControls {
     document.removeEventListener("keydown", this._onKeyDown);
     document.removeEventListener("keyup", this._onKeyUp);
     document.removeEventListener("mousemove", this._onMouseMove);
-    this.domElement.removeEventListener("click", this._onClick);
+    this.domElement.removeEventListener("mousedown", this._onMouseDown);
     document.removeEventListener("pointerlockchange", this._onPointerlockChange);
     this.domElement.removeEventListener("wheel", this._onWheel);
 

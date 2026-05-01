@@ -2,19 +2,6 @@
 
 import React, { useState } from "react";
 import {
-  Upload,
-  Camera,
-  Save,
-  Download,
-  Eye,
-  EyeOff,
-  Palette,
-  Sun,
-  Layers,
-  ChevronDown,
-  Navigation,
-  Orbit,
-  Map,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { THEMES } from "@/lib/three-scene";
@@ -57,10 +44,9 @@ export function Toolbar({
 
   return (
     <div className="absolute left-1/2 top-0 z-10 -translate-x-1/2">
-      <div className="mt-3 flex items-center gap-1 rounded-3xl border border-white/20 bg-white/40 px-2 py-1.5 shadow-lg backdrop-blur-md">
+      <div className="mt-3 flex items-center gap-1 rounded-full border border-white/30 bg-white/10 px-2 py-1.5 shadow-2xl backdrop-blur-2xl">
         {/* Upload New */}
         <ToolbarButton
-          icon={<Upload className="h-3.5 w-3.5" />}
           label="Upload"
           onClick={onUploadNew}
         />
@@ -70,15 +56,14 @@ export function Toolbar({
         {/* Theme Selector */}
         <div className="relative">
           <ToolbarButton
-            icon={<Palette className="h-3.5 w-3.5" />}
             label={THEMES[currentTheme]?.name ?? "Theme"}
             onClick={() => setShowThemes(!showThemes)}
             active={showThemes}
-            suffix={<ChevronDown className="ml-0.5 h-3 w-3" />}
+            suffix={<span className="ml-1 text-[10px] opacity-50">▼</span>}
           />
 
           {showThemes && (
-            <div className="absolute left-0 top-full mt-2 w-48 overflow-hidden rounded-2xl border border-white/20 bg-white/90 shadow-2xl backdrop-blur-md">
+            <div className="absolute left-0 top-full mt-2 w-48 overflow-hidden rounded-2xl border border-white/20 bg-black/40 shadow-2xl backdrop-blur-xl">
               {Object.entries(THEMES).map(([key, theme]) => (
                 <button
                   key={key}
@@ -86,11 +71,10 @@ export function Toolbar({
                     onThemeChange(key);
                     setShowThemes(false);
                   }}
-                  className={`flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors ${
-                    currentTheme === key
+                  className={`flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors ${currentTheme === key
                       ? "bg-primary/10 text-primary font-medium"
                       : "text-muted-foreground hover:bg-white/50 hover:text-foreground"
-                  }`}
+                    }`}
                 >
                   {/* Colour preview */}
                   <div className="flex gap-1">
@@ -124,44 +108,33 @@ export function Toolbar({
           <>
             <div className="relative">
               <ToolbarButton
-                icon={
-                  viewMode === "walkthrough" ? (
-                    <Navigation className="h-3.5 w-3.5" />
-                  ) : viewMode === "orbit" ? (
-                    <Orbit className="h-3.5 w-3.5" />
-                  ) : (
-                    <Map className="h-3.5 w-3.5" />
-                  )
-                }
                 label={
                   viewMode === "walkthrough"
                     ? "Walkthrough"
                     : viewMode === "orbit"
-                    ? "Orbit"
-                    : "Top-Down"
+                      ? "Orbit"
+                      : "Top-Down"
                 }
                 onClick={() => setShowViewModes(!showViewModes)}
                 active={showViewModes}
-                suffix={<ChevronDown className="ml-0.5 h-3 w-3" />}
+                suffix={<span className="ml-1 text-[10px] opacity-50">▼</span>}
               />
 
               {showViewModes && (
-                <div className="absolute left-0 top-full mt-2 w-44 overflow-hidden rounded-2xl border border-white/20 bg-white/90 shadow-2xl backdrop-blur-md">
+                <div className="absolute left-0 top-full mt-2 w-44 overflow-hidden rounded-2xl border border-white/20 bg-black/40 shadow-2xl backdrop-blur-xl">
                   <button
                     onClick={() => {
                       onViewModeChange("walkthrough");
                       setShowViewModes(false);
                     }}
-                    className={`flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors ${
-                      viewMode === "walkthrough"
+                    className={`flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors ${viewMode === "walkthrough"
                         ? "bg-primary/10 text-primary font-medium"
                         : "text-muted-foreground hover:bg-white/50 hover:text-foreground"
-                    }`}
+                      }`}
                   >
-                    <Navigation className="h-4 w-4" />
                     <span>Walkthrough</span>
                     {viewMode === "walkthrough" && (
-                      <span className="ml-auto text-xs text-primary">✓</span>
+                      <span className="ml-auto text-xs text-primary">Active</span>
                     )}
                   </button>
                   <button
@@ -169,16 +142,14 @@ export function Toolbar({
                       onViewModeChange("orbit");
                       setShowViewModes(false);
                     }}
-                    className={`flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors ${
-                      viewMode === "orbit"
+                    className={`flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors ${viewMode === "orbit"
                         ? "bg-primary/10 text-primary font-medium"
                         : "text-muted-foreground hover:bg-white/50 hover:text-foreground"
-                    }`}
+                      }`}
                   >
-                    <Orbit className="h-4 w-4" />
                     <span>Orbit View</span>
                     {viewMode === "orbit" && (
-                      <span className="ml-auto text-xs text-primary">✓</span>
+                      <span className="ml-auto text-xs text-primary">Active</span>
                     )}
                   </button>
                   <button
@@ -186,16 +157,14 @@ export function Toolbar({
                       onViewModeChange("topdown");
                       setShowViewModes(false);
                     }}
-                    className={`flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors ${
-                      viewMode === "topdown"
+                    className={`flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors ${viewMode === "topdown"
                         ? "bg-primary/10 text-primary font-medium"
                         : "text-muted-foreground hover:bg-white/50 hover:text-foreground"
-                    }`}
+                      }`}
                   >
-                    <Map className="h-4 w-4" />
                     <span>Top-Down</span>
                     {viewMode === "topdown" && (
-                      <span className="ml-auto text-xs text-primary">✓</span>
+                      <span className="ml-auto text-xs text-primary">Active</span>
                     )}
                   </button>
                 </div>
@@ -207,20 +176,12 @@ export function Toolbar({
 
         {/* View Toggles */}
         <ToolbarButton
-          icon={
-            showPointCloud ? (
-              <Eye className="h-3.5 w-3.5" />
-            ) : (
-              <EyeOff className="h-3.5 w-3.5" />
-            )
-          }
-          label="Points"
+          label={showPointCloud ? "Hide Points" : "Show Points"}
           onClick={onTogglePointCloud}
           active={showPointCloud}
         />
 
         <ToolbarButton
-          icon={<Layers className="h-3.5 w-3.5" />}
           label="Markers"
           onClick={onToggleMarkers}
           active={showMarkers}
@@ -230,25 +191,21 @@ export function Toolbar({
 
         {/* Export Actions */}
         <ToolbarButton
-          icon={<Camera className="h-3.5 w-3.5" />}
           label="Screenshot"
           onClick={onScreenshot}
         />
 
         <ToolbarButton
-          icon={<Download className="h-3.5 w-3.5" />}
           label="Export"
           onClick={onExport}
         />
 
         <ToolbarButton
-          icon={<Save className="h-3.5 w-3.5" />}
           label="Save Cloud"
           onClick={onSaveLocal}
         />
 
         <ToolbarButton
-          icon={<Sun className="h-3.5 w-3.5" />}
           label="Load Last"
           onClick={onLoadLatest}
         />
@@ -256,12 +213,9 @@ export function Toolbar({
         {roomDimensions && (
           <>
             <Separator />
-            <div className="flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-medium bg-white/50 text-foreground border border-white/40 shadow-sm ml-2">
-              <span className="text-muted-foreground mr-1">📐 Size:</span>
-              <span>{Math.round(roomDimensions.width * 10) / 10}m × {Math.round(roomDimensions.length * 10) / 10}m × {roomDimensions.height}m</span>
-              <span className="text-[10px] text-muted-foreground ml-2">
-                (~{Math.round((roomDimensions.width * roomDimensions.length) * 10.764)} sq ft)
-              </span>
+            <div className="flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-[10px] font-bold bg-white/5 text-white/80 border border-white/10 shadow-inner ml-2 uppercase tracking-widest">
+              <span className="text-white/40">Size:</span>
+              <span>{Math.round(roomDimensions.width * 100) / 100}m × {Math.round(roomDimensions.length * 100) / 100}m × {roomDimensions.height}m</span>
             </div>
           </>
         )}
@@ -277,7 +231,7 @@ function ToolbarButton({
   active,
   suffix,
 }: {
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   label: string;
   onClick: () => void;
   active?: boolean;
@@ -286,14 +240,12 @@ function ToolbarButton({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
-        active
-          ? "bg-white/80 text-primary shadow-sm"
-          : "text-muted-foreground hover:bg-white/60 hover:text-foreground"
-      }`}
+      className={`flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all ${active
+          ? "bg-white text-black shadow-lg"
+          : "text-white/60 hover:bg-white/10 hover:text-white"
+        }`}
     >
-      {icon}
-      <span className="hidden sm:inline">{label}</span>
+      <span className="sm:inline">{label}</span>
       {suffix}
     </button>
   );

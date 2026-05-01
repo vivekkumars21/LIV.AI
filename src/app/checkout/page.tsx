@@ -9,7 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Header } from '@/components/landing/header';
 import { Footer } from '@/components/landing/footer';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Truck, CreditCard, Package, Receipt, ShieldCheck, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 export default function CheckoutPage() {
     const { items, cartTotal, clearCart, isInitialized } = useCart();
@@ -61,109 +62,154 @@ export default function CheckoutPage() {
     return (
         <div className="min-h-screen flex flex-col bg-muted/30">
             <Header />
-            <main className="flex-1 container mx-auto py-12 px-4">
-                <h1 className="text-3xl font-light mb-8 text-center">Checkout</h1>
+            <main className="flex-1 container mx-auto py-12 px-4 max-w-6xl">
+                <div className="mb-8">
+                    <Link href="/shop" className="text-muted-foreground hover:text-primary flex items-center gap-2 text-sm font-medium transition-colors mb-4">
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to Shop
+                    </Link>
+                    <h1 className="text-4xl font-bold tracking-tight">Checkout</h1>
+                </div>
 
-                <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
+                <div className="grid lg:grid-cols-3 gap-8">
                     {/* Form */}
-                    <div className="space-y-6 bg-card p-6 rounded-lg border shadow-sm h-fit">
-                        <h2 className="text-xl font-semibold mb-4">Shipping Information</h2>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="name">Full Name</Label>
-                                    <Input id="name" name="name" required placeholder="John Doe" value={formData.name} onChange={handleInputChange} />
+                    <div className="lg:col-span-2 space-y-6">
+                        <div className="bg-card p-8 rounded-3xl border shadow-sm space-y-8">
+                            <section className="space-y-6">
+                                <div className="flex items-center gap-3 pb-2 border-b">
+                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                        <Truck className="w-5 h-5" />
+                                    </div>
+                                    <h2 className="text-xl font-bold">Shipping Information</h2>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="email">Email</Label>
-                                    <Input id="email" name="email" type="email" required placeholder="john@example.com" value={formData.email} onChange={handleInputChange} />
-                                </div>
-                            </div>
+                                
+                                <form id="checkout-form" onSubmit={handleSubmit} className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="name">Full Name</Label>
+                                            <Input id="name" name="name" required placeholder="John Doe" value={formData.name} onChange={handleInputChange} className="rounded-xl h-12" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="email">Email</Label>
+                                            <Input id="email" name="email" type="email" required placeholder="john@example.com" value={formData.email} onChange={handleInputChange} className="rounded-xl h-12" />
+                                        </div>
+                                    </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="address">Address</Label>
-                                <Input id="address" name="address" required placeholder="123 Design St" value={formData.address} onChange={handleInputChange} />
-                            </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="address">Address</Label>
+                                        <Input id="address" name="address" required placeholder="123 Design St" value={formData.address} onChange={handleInputChange} className="rounded-xl h-12" />
+                                    </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="city">City</Label>
-                                    <Input id="city" name="city" required placeholder="New York" value={formData.city} onChange={handleInputChange} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="zip">ZIP Code</Label>
-                                    <Input id="zip" name="zip" required placeholder="10001" value={formData.zip} onChange={handleInputChange} />
-                                </div>
-                            </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="city">City</Label>
+                                            <Input id="city" name="city" required placeholder="New York" value={formData.city} onChange={handleInputChange} className="rounded-xl h-12" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="zip">ZIP Code</Label>
+                                            <Input id="zip" name="zip" required placeholder="10001" value={formData.zip} onChange={handleInputChange} className="rounded-xl h-12" />
+                                        </div>
+                                    </div>
+                                </form>
+                            </section>
 
-                            <div className="pt-4 border-t">
-                                <h2 className="text-xl font-semibold mb-4">Payment Details (Simulated)</h2>
+                            <section className="space-y-6">
+                                <div className="flex items-center gap-3 pb-2 border-b">
+                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                        <CreditCard className="w-5 h-5" />
+                                    </div>
+                                    <h2 className="text-xl font-bold">Payment Details</h2>
+                                </div>
+                                
                                 <div className="space-y-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="card">Card Number</Label>
-                                        <Input id="card" name="card" readOnly value={formData.card} className="bg-muted" />
+                                        <div className="relative">
+                                            <Input id="card" name="card" readOnly value={formData.card} className="bg-muted rounded-xl h-12 pl-12" />
+                                            <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                                        </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="expiry">Expiry</Label>
-                                            <Input id="expiry" name="expiry" readOnly value={formData.expiry} className="bg-muted" />
+                                            <Input id="expiry" name="expiry" readOnly value={formData.expiry} className="bg-muted rounded-xl h-12" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="cvc">CVC</Label>
-                                            <Input id="cvc" name="cvc" readOnly value={formData.cvc} className="bg-muted" />
+                                            <Input id="cvc" name="cvc" readOnly value={formData.cvc} className="bg-muted rounded-xl h-12" />
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </section>
 
-                            <Button type="submit" className="w-full h-12 text-lg mt-6" disabled={isProcessing}>
+                            <Button form="checkout-form" type="submit" className="w-full h-14 text-lg font-bold rounded-2xl shadow-lg shadow-primary/20 transition-all hover:translate-y-[-2px]" disabled={isProcessing}>
                                 {isProcessing ? (
                                     <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Processing...
+                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                        Processing Order...
                                     </>
                                 ) : (
-                                    `Pay ₹${cartTotal.toLocaleString('en-IN')}`
+                                    <>
+                                        <ShieldCheck className="mr-2 h-5 w-5" />
+                                        Complete Purchase - ₹{cartTotal.toLocaleString('en-IN')}
+                                    </>
                                 )}
                             </Button>
-                        </form>
+                        </div>
                     </div>
 
                     {/* Order Summary */}
                     <div className="space-y-6">
-                        <div className="bg-card p-6 rounded-lg border shadow-sm">
-                            <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-                            <div className="space-y-4 max-h-[400px] overflow-y-auto mb-4">
+                        <div className="bg-card p-8 rounded-3xl border shadow-sm sticky top-8">
+                            <div className="flex items-center gap-3 mb-6">
+                                <Receipt className="w-5 h-5 text-primary" />
+                                <h2 className="text-xl font-bold">Order Summary</h2>
+                            </div>
+                            
+                            <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 mb-6 scrollbar-thin">
                                 {items.map(item => (
-                                    <div key={item.id} className="flex justify-between items-start text-sm">
+                                    <div key={item.id} className="flex justify-between items-start text-sm group">
                                         <div className="flex gap-3">
-                                            <span className="font-bold text-muted-foreground">{item.quantity}x</span>
-                                            <span>{item.name}</span>
+                                            <div className="w-10 h-10 rounded-lg bg-muted overflow-hidden flex-shrink-0 border">
+                                                <img src={item.image} alt="" className="w-full h-full object-cover" />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold line-clamp-1">{item.name}</p>
+                                                <p className="text-muted-foreground text-xs">{item.quantity} × ₹{item.price.toLocaleString('en-IN')}</p>
+                                            </div>
                                         </div>
-                                        <span>₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
+                                        <span className="font-semibold">₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="space-y-2 border-t pt-4">
+                            <div className="space-y-3 border-t pt-6">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Subtotal</span>
-                                    <span>₹{cartTotal.toLocaleString('en-IN')}</span>
+                                    <span className="font-medium">₹{cartTotal.toLocaleString('en-IN')}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Shipping</span>
-                                    <span className="text-green-600 font-medium">Free</span>
+                                    <div className="flex items-center gap-1.5 text-emerald-600 font-bold">
+                                        <Truck className="w-4 h-4" />
+                                        <span>FREE</span>
+                                    </div>
+                                </div>
+                                <div className="flex justify-between text-xl font-bold border-t pt-4 mt-2">
+                                    <span>Total</span>
+                                    <span className="text-primary">₹{cartTotal.toLocaleString('en-IN')}</span>
                                 </div>
                             </div>
-                            <div className="flex justify-between text-xl font-bold border-t pt-4 mt-4">
-                                <span>Total</span>
-                                <span>₹{cartTotal.toLocaleString('en-IN')}</span>
-                            </div>
-                        </div>
 
-                        <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100 text-sm text-blue-800">
-                            <p className="font-semibold mb-1">Secure Checkout</p>
-                            <p>This is a simulated checkout. No real payment will be processed, but your order will be "placed".</p>
+                            <div className="mt-8 p-4 bg-primary/5 rounded-2xl border border-primary/10 space-y-3">
+                                <div className="flex items-center gap-2 text-primary">
+                                    <ShieldCheck className="w-5 h-5" />
+                                    <span className="font-bold text-sm uppercase tracking-wider">Secure Payment</span>
+                                </div>
+                                <p className="text-xs text-muted-foreground leading-relaxed">
+                                    Your security is our priority. This is a secure SSL encrypted payment. No real payment will be processed in this demo.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
