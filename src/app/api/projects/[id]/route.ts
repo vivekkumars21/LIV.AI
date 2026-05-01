@@ -3,16 +3,19 @@ import { NextRequest, NextResponse } from "next/server";
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/projects/${params.id}`);
+    const authHeader = request.headers.get("authorization") ?? "";
+    const response = await fetch(`${BACKEND_URL}/api/projects/${params.id}`, {
+      headers: authHeader ? { Authorization: authHeader } : {},
+    });
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
   } catch (error: unknown) {
     return NextResponse.json(
-      { error: "Failed to load local project", details: String(error) },
+      { error: "Failed to load cloud project", details: String(error) },
       { status: 500 }
     );
   }
@@ -24,34 +27,40 @@ export async function PUT(
 ) {
   try {
     const body = await request.json();
+    const authHeader = request.headers.get("authorization") ?? "";
     const response = await fetch(`${BACKEND_URL}/api/projects/${params.id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(authHeader ? { Authorization: authHeader } : {}),
+      },
       body: JSON.stringify(body),
     });
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
   } catch (error: unknown) {
     return NextResponse.json(
-      { error: "Failed to update local project", details: String(error) },
+      { error: "Failed to update cloud project", details: String(error) },
       { status: 500 }
     );
   }
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const authHeader = request.headers.get("authorization") ?? "";
     const response = await fetch(`${BACKEND_URL}/api/projects/${params.id}`, {
       method: "DELETE",
+      headers: authHeader ? { Authorization: authHeader } : {},
     });
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
   } catch (error: unknown) {
     return NextResponse.json(
-      { error: "Failed to delete local project", details: String(error) },
+      { error: "Failed to delete cloud project", details: String(error) },
       { status: 500 }
     );
   }

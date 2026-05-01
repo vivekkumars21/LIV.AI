@@ -216,6 +216,9 @@ export class FurnitureManager {
   private selectedItem: PlacedFurniture | null = null;
   private raycaster = new THREE.Raycaster();
   private mouse = new THREE.Vector2();
+  private draggedItem: PlacedFurniture | null = null;
+  private dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+  private dragOffset = new THREE.Vector3();
 
   // Transform mode
   private transformMode: "translate" | "rotate" | "scale" = "translate";
@@ -884,32 +887,67 @@ export class FurnitureManager {
   handleClick(clientX: number, clientY: number): PlacedFurniture | null {
     if (this.isPlacing) return null;
 
-    const rect = this.renderer.domElement.getBoundingClientRect();
-    this.mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
-    this.mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
-
-    this.raycaster.setFromCamera(this.mouse, this.camera);
-    const intersects = this.raycaster.intersectObjects(
-      this.furnitureGroup.children,
-      true
-    );
-
-    if (intersects.length > 0) {
-      // Find the top-level group ancestor
-      let obj = intersects[0].object;
-      while (obj.parent && obj.parent !== this.furnitureGroup) {
-        obj = obj.parent;
-      }
-
-      const placed = this.placedItems.get(obj.name);
-      if (placed) {
-        this.selectItem(placed);
-        return placed;
-      }
+    const placed = this.pickItem(clientX, clientY);
+    if (placed) {
+      this.selectItem(placed);
+      return placed;
     }
 
     this.deselectItem();
     return null;
+  }
+
+  startDragging(clientX: number, clientY: number): boolean {
+    if (this.isPlacing) return false;
+
+    const picked = this.pickItem(clientX, clientY);
+    if (!picked) return false;
+
+    this.selectItem(picked);
+    this.draggedItem = picked;
+
+    const intersection = this.getIntersectionOnFloor(clientX, clientY);
+    if (intersection) {
+      this.dragOffset.copy(picked.mesh.position).sub(intersection);
+    } else {
+      this.dragOffset.set(0, 0, 0);
+    }
+
+    return true;
+  }
+
+  updateDragging(clientX: number, clientY: number): boolean {
+    if (!this.draggedItem) return false;
+
+    const intersection = this.getIntersectionOnFloor(clientX, clientY);
+    if (!intersection) return false;
+
+    const item = this.draggedItem;
+    const proposed = intersection.clone().add(this.dragOffset);
+
+    const halfWidth = (item.originalDimensions.width * item.scale.x) / 2;
+    const halfDepth = (item.originalDimensions.depth * item.scale.z) / 2;
+
+    const clampedX = Math.max(
+      this.roomBounds.minX + halfWidth,
+      Math.min(this.roomBounds.maxX - halfWidth, proposed.x)
+    );
+    const clampedZ = Math.max(
+      this.roomBounds.minZ + halfDepth,
+      Math.min(this.roomBounds.maxZ - halfDepth, proposed.z)
+    );
+
+    item.mesh.position.set(clampedX, 0, clampedZ);
+    item.position.set(clampedX, 0, clampedZ);
+    return true;
+  }
+
+  stopDragging() {
+    this.draggedItem = null;
+  }
+
+  get dragging(): boolean {
+    return this.draggedItem !== null;
   }
 
   selectItem(item: PlacedFurniture) {
@@ -1046,6 +1084,7 @@ export class FurnitureManager {
   }
 
   dispose() {
+    this.stopDragging();
     this.cancelPlacement();
     this.placedItems.forEach((item) => {
       this.furnitureGroup.remove(item.mesh);
@@ -1053,5 +1092,37 @@ export class FurnitureManager {
     this.placedItems.clear();
     this.modelCache.clear();
     this.scene.remove(this.furnitureGroup);
+  }
+
+  private pickItem(clientX: number, clientY: number): PlacedFurniture | null {
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    this.mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    this.mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+    const intersects = this.raycaster.intersectObjects(this.furnitureGroup.children, true);
+    if (intersects.length === 0) {
+      return null;
+    }
+
+    let obj = intersects[0].object;
+    while (obj.parent && obj.parent !== this.furnitureGroup) {
+      obj = obj.parent;
+    }
+
+    return this.placedItems.get(obj.name) ?? null;
+  }
+
+  private getIntersectionOnFloor(clientX: number, clientY: number): THREE.Vector3 | null {
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    this.mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    this.mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+    const point = new THREE.Vector3();
+    if (this.raycaster.ray.intersectPlane(this.dragPlane, point)) {
+      return point;
+    }
+    return null;
   }
 }

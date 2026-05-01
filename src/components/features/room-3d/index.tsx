@@ -1,16 +1,16 @@
 "use client";
 
-import React, { useRef, useState, useEffect, useCallback } from "react";
+import React, { useRef, useState, useEffect, useCallback, useMemo } from "react";
 import * as THREE from "three";
 import {
   SceneManager,
   FirstPersonControls,
+  OrbitControls,
   RoomBuilder,
   FurnitureManager,
   LightingManager,
   THEMES,
   FURNITURE_CATALOG,
-  FURNITURE_CATEGORIES,
 } from "@/lib/three-scene";
 import type { RoomData, PlacedFurniture, FurnitureItem } from "@/lib/three-scene";
 import { FurnitureSidebar } from "./furniture-sidebar";
@@ -18,6 +18,7 @@ import { PropertiesPanel } from "./properties-panel";
 import { Toolbar } from "./toolbar";
 import { Minimap } from "./minimap";
 import { UploadModal } from "./upload-modal";
+import { products, parseDimensionsMetric, type Product } from "@/lib/products";
 
 export type ViewMode = "walkthrough" | "orbit" | "topdown";
 
@@ -25,6 +26,7 @@ export function Room3DViewer() {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneManagerRef = useRef<SceneManager | null>(null);
   const controlsRef = useRef<FirstPersonControls | null>(null);
+  const orbitControlsRef = useRef<OrbitControls | null>(null);
   const roomBuilderRef = useRef<RoomBuilder | null>(null);
   const furnitureManagerRef = useRef<FurnitureManager | null>(null);
   const lightingManagerRef = useRef<LightingManager | null>(null);
@@ -42,86 +44,182 @@ export function Room3DViewer() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [propertiesOpen, setPropertiesOpen] = useState(false);
   const [isPlacing, setIsPlacing] = useState(false);
+  const [isDraggingItem, setIsDraggingItem] = useState(false);
   const [controlsLocked, setControlsLocked] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string>("");
+  const [webglError, setWebglError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("walkthrough");
+
+  const [dbFurniture, setDbFurniture] = useState<FurnitureItem[]>([]);
+  const [dbProducts, setDbProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const loadCatalog = async () => {
+      try {
+        const [furnitureRes, productsRes] = await Promise.all([
+          fetch("/api/furniture"),
+          fetch("/api/products?limit=300")
+        ]);
+        
+        if (furnitureRes.ok) {
+          const data = await furnitureRes.json();
+          if (Array.isArray(data)) setDbFurniture(data);
+        }
+        
+        if (productsRes.ok) {
+          const data = await productsRes.json();
+          if (Array.isArray(data)) setDbProducts(data);
+        }
+      } catch (err) {
+        console.warn("Catalog fetch failed, using fallbacks:", err);
+      }
+    };
+    loadCatalog();
+  }, []);
+
+  const plannerCatalog = useMemo(() => {
+    const categoryMap: Record<string, string> = {
+      Sofas: "Sofas",
+      Tables: "Tables",
+      Beds: "Beds",
+      Lighting: "Lamps",
+      Decor: "Cabinets",
+      Storage: "Cabinets",
+    };
+
+    const ecommerceItems = dbProducts
+      .map<FurnitureItem | null>((product) => {
+        const dims = parseDimensionsMetric(product.dimensions);
+        if (!dims) return null;
+
+        return {
+          id: `store-${product.id}`,
+          name: product.name,
+          category: categoryMap[product.category] ?? "Cabinets",
+          thumbnailUrl: product.image,
+          dimensions: {
+            width: Math.max(dims.width, 0.25),
+            height: Math.max(dims.height, 0.25),
+            depth: Math.max(dims.depth, 0.2),
+          },
+          price: product.price,
+          material: product.material,
+        };
+      })
+      .filter((item): item is FurnitureItem => item !== null);
+
+    const items = [...dbFurniture, ...FURNITURE_CATALOG, ...ecommerceItems];
+    // Filter out duplicates if any (based on ID)
+    const uniqueItems = Array.from(new Map(items.map(item => [item.id, item])).values());
+    const categories = Array.from(new Set(uniqueItems.map((item) => item.category)));
+
+    return { items: uniqueItems, categories };
+  }, [dbFurniture, dbProducts]);
 
   // Initialize Three.js scene
   useEffect(() => {
-    if (!containerRef.current || isInitialized) return;
+    if (!containerRef.current || sceneManagerRef.current) return;
 
     const container = containerRef.current;
 
-    // Scene Manager
-    const sceneManager = new SceneManager({
-      container,
-      antialias: true,
-      shadows: true,
-    });
-    sceneManagerRef.current = sceneManager;
+    try {
+      // Scene Manager
+      const sceneManager = new SceneManager({
+        container,
+        antialias: true,
+        shadows: true,
+      });
+      sceneManagerRef.current = sceneManager;
 
-    // Lighting
-    const lighting = new LightingManager({
-      scene: sceneManager.scene,
-      ambientIntensity: 0.5,
-      sunIntensity: 1.0,
-      shadows: true,
-    });
-    lightingManagerRef.current = lighting;
+      // Lighting
+      const lighting = new LightingManager({
+        scene: sceneManager.scene,
+        ambientIntensity: 0.5,
+        sunIntensity: 1.0,
+        shadows: true,
+      });
+      lightingManagerRef.current = lighting;
 
-    // Room Builder
-    const roomBuilder = new RoomBuilder(sceneManager.scene);
-    roomBuilderRef.current = roomBuilder;
+      // Room Builder
+      const roomBuilder = new RoomBuilder(sceneManager.scene);
+      roomBuilderRef.current = roomBuilder;
 
-    // Furniture Manager
-    const furnitureManager = new FurnitureManager(
-      sceneManager.scene,
-      sceneManager.camera,
-      sceneManager.renderer
-    );
-    furnitureManagerRef.current = furnitureManager;
+      // Furniture Manager
+      const furnitureManager = new FurnitureManager(
+        sceneManager.scene,
+        sceneManager.camera,
+        sceneManager.renderer
+      );
+      furnitureManagerRef.current = furnitureManager;
 
-    furnitureManager.onSelectionChange = (item) => {
-      setSelectedFurniture(item);
-      setPropertiesOpen(!!item);
-    };
+      furnitureManager.onSelectionChange = (item) => {
+        setSelectedFurniture(item);
+        setPropertiesOpen(!!item);
+      };
 
-    furnitureManager.onItemPlaced = () => {
-      setPlacedItems(furnitureManager.getPlacedItems());
-    };
+      furnitureManager.onItemPlaced = () => {
+        setPlacedItems(furnitureManager.getPlacedItems());
+      };
 
-    // First-Person Controls
-    const controls = new FirstPersonControls({
-      camera: sceneManager.camera,
-      domElement: sceneManager.renderer.domElement,
-      moveSpeed: 3.0,
-      lookSpeed: 0.002,
-      eyeHeight: 1.6,
-    });
-    controlsRef.current = controls;
+      // First-Person Controls
+      const controls = new FirstPersonControls({
+        camera: sceneManager.camera,
+        domElement: sceneManager.renderer.domElement,
+        moveSpeed: 3.0,
+        lookSpeed: 0.002,
+        eyeHeight: 1.6,
+      });
+      controlsRef.current = controls;
 
-    // Animation loop
-    sceneManager.onUpdate((delta) => {
-      controls.update(delta);
-    });
+      // Orbit Controls
+      const orbitControls = new OrbitControls({
+        camera: sceneManager.camera,
+        domElement: sceneManager.renderer.domElement,
+        enableDamping: true,
+        dampingFactor: 0.05,
+        minDistance: 0.5,
+        maxDistance: 20,
+        minPolarAngle: 0,
+        maxPolarAngle: Math.PI / 2,
+      });
+      orbitControls.setEnabled(false); // Start with first-person mode
+      orbitControlsRef.current = orbitControls;
 
-    sceneManager.start();
-    setIsInitialized(true);
+      // Animation loop
+      sceneManager.onUpdate((delta) => {
+        controls.update(delta);
+        orbitControls.update();
+      });
 
-    return () => {
-      controls.dispose();
-      furnitureManager.dispose();
-      roomBuilder.dispose();
-      lighting.dispose();
-      sceneManager.dispose();
-      sceneManagerRef.current = null;
-      controlsRef.current = null;
-      roomBuilderRef.current = null;
-      furnitureManagerRef.current = null;
-      lightingManagerRef.current = null;
-    };
-  }, [isInitialized]);
+      sceneManager.start();
+      setIsInitialized(true);
+
+      return () => {
+        controls.dispose();
+        orbitControls.dispose();
+        furnitureManager.dispose();
+        roomBuilder.dispose();
+        lighting.dispose();
+        sceneManager.dispose();
+        sceneManagerRef.current = null;
+        controlsRef.current = null;
+        orbitControlsRef.current = null;
+        roomBuilderRef.current = null;
+        furnitureManagerRef.current = null;
+        lightingManagerRef.current = null;
+        setIsInitialized(false);
+      };
+    } catch (err) {
+      console.error("Failed to initialize 3D engine:", err);
+      setWebglError(
+        err instanceof Error
+          ? err.message
+          : "Failed to initialize WebGL. Please enable hardware acceleration in your browser."
+      );
+    }
+  }, []);
 
   // Update controls lock state
   useEffect(() => {
@@ -373,6 +471,17 @@ export function Room3DViewer() {
     }
   }, [currentTheme]);
 
+  const getProjectRequestHeaders = useCallback((): HeadersInit => {
+    if (typeof window === "undefined") {
+      return { "Content-Type": "application/json" };
+    }
+    const token = window.localStorage.getItem("intrakart-access-token");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  }, []);
+
   const restoreFurniture = useCallback(
     (savedFurniture: Array<{
       itemId: string;
@@ -385,7 +494,7 @@ export function Room3DViewer() {
       manager.clearAll();
 
       for (const saved of savedFurniture) {
-        const item = FURNITURE_CATALOG.find((catalogItem) => catalogItem.id === saved.itemId);
+        const item = plannerCatalog.items.find((catalogItem) => catalogItem.id === saved.itemId);
         if (!item) continue;
 
         const placed = manager.placeItem(
@@ -416,7 +525,7 @@ export function Room3DViewer() {
 
       setPlacedItems(manager.getPlacedItems());
     },
-    []
+    [plannerCatalog.items]
   );
 
   const applyLoadedProject = useCallback(
@@ -458,7 +567,7 @@ export function Room3DViewer() {
       }
 
       setShowUploadModal(false);
-      setStatusMessage(`Loaded local project: ${loaded.id.slice(0, 8)}`);
+      setStatusMessage(`Loaded cloud project: ${loaded.id.slice(0, 8)}`);
       setTimeout(() => setStatusMessage(""), 2400);
     },
     [restoreFurniture]
@@ -466,25 +575,29 @@ export function Room3DViewer() {
 
   const handleLoadLatestProject = useCallback(async () => {
     try {
-      const listResponse = await fetch("/api/projects?limit=1");
+      const listResponse = await fetch("/api/projects?limit=1", {
+        headers: getProjectRequestHeaders(),
+      });
       if (!listResponse.ok) return;
       const list = await listResponse.json();
       if (!Array.isArray(list) || list.length === 0) {
-        setStatusMessage("No local project found");
+        setStatusMessage("No cloud project found");
         setTimeout(() => setStatusMessage(""), 1800);
         return;
       }
 
       const id = list[0].id;
-      const detailResponse = await fetch(`/api/projects/${id}`);
+      const detailResponse = await fetch(`/api/projects/${id}`, {
+        headers: getProjectRequestHeaders(),
+      });
       if (!detailResponse.ok) return;
       const project = await detailResponse.json();
       applyLoadedProject(project);
     } catch {
-      setStatusMessage("Local load failed");
+      setStatusMessage("Cloud load failed");
       setTimeout(() => setStatusMessage(""), 1800);
     }
-  }, [applyLoadedProject]);
+  }, [applyLoadedProject, getProjectRequestHeaders]);
 
   const handleSaveLocalProject = useCallback(async () => {
     if (!roomData) {
@@ -498,18 +611,18 @@ export function Room3DViewer() {
       theme: currentTheme,
       room_data: roomData,
       furniture_data: furnitureManagerRef.current?.exportData() ?? [],
-      notes: "Saved locally",
+      notes: "Saved in Supabase",
     };
 
     try {
       const response = await fetch(projectId ? `/api/projects/${projectId}` : "/api/projects", {
         method: projectId ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getProjectRequestHeaders(),
         body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        setStatusMessage("Local save failed");
+        setStatusMessage("Cloud save failed");
         setTimeout(() => setStatusMessage(""), 1800);
         return;
       }
@@ -518,13 +631,13 @@ export function Room3DViewer() {
       if (saved?.id) {
         setProjectId(saved.id);
       }
-      setStatusMessage("Saved to local SQLite");
+      setStatusMessage("Saved to Supabase cloud");
       setTimeout(() => setStatusMessage(""), 1800);
     } catch {
-      setStatusMessage("Local save failed");
+      setStatusMessage("Cloud save failed");
       setTimeout(() => setStatusMessage(""), 1800);
     }
-  }, [currentTheme, projectId, roomData]);
+  }, [currentTheme, getProjectRequestHeaders, projectId, roomData]);
 
   // Theme change
   const handleThemeChange = useCallback(
@@ -540,11 +653,71 @@ export function Room3DViewer() {
     []
   );
 
+  // View mode switching
+  const handleViewModeChange = useCallback(
+    (mode: ViewMode) => {
+      if (!sceneManagerRef.current || !controlsRef.current || !orbitControlsRef.current) return;
+
+      const camera = sceneManagerRef.current.camera;
+      const currentPos = camera.position.clone();
+      
+      // Exit pointer lock if in walkthrough mode
+      if (viewMode === "walkthrough" && document.pointerLockElement) {
+        document.exitPointerLock();
+      }
+
+      setViewMode(mode);
+
+      if (mode === "walkthrough") {
+        // Switch to first-person controls
+        controlsRef.current.setEnabled(true);
+        orbitControlsRef.current.setEnabled(false);
+        
+        // Position camera at eye level if coming from other modes
+        if (viewMode !== "walkthrough") {
+          camera.position.y = 1.6;
+        }
+      } else if (mode === "orbit") {
+        // Switch to orbit controls
+        controlsRef.current.setEnabled(false);
+        orbitControlsRef.current.setEnabled(true);
+        
+        // Set orbit target to room center
+        if (roomData) {
+          const dims = roomData.dimensions;
+          orbitControlsRef.current.setTarget(0, dims.height / 2, dims.length / 2);
+        }
+        
+        // Position camera for good orbit view
+        if (viewMode === "walkthrough") {
+          camera.position.set(
+            currentPos.x,
+            Math.max(currentPos.y, 2),
+            currentPos.z - 2
+          );
+        }
+      } else if (mode === "topdown") {
+        // Switch to orbit controls in top-down configuration
+        controlsRef.current.setEnabled(false);
+        orbitControlsRef.current.setEnabled(true);
+        
+        // Set camera directly above room center
+        if (roomData) {
+          const dims = roomData.dimensions;
+          camera.position.set(0, dims.height + 4, dims.length / 2);
+          orbitControlsRef.current.setTarget(0, 0, dims.length / 2);
+        }
+      }
+    },
+    [viewMode, roomData]
+  );
+
   // Furniture placement
   const handleStartPlacement = useCallback((item: FurnitureItem) => {
-    if (furnitureManagerRef.current && controlsRef.current) {
+    if (furnitureManagerRef.current && controlsRef.current && orbitControlsRef.current) {
       furnitureManagerRef.current.startPlacement(item);
       controlsRef.current.enabled = false;
+      orbitControlsRef.current.setEnabled(false);
       setIsPlacing(true);
     }
   }, []);
@@ -554,43 +727,116 @@ export function Room3DViewer() {
     (e: React.MouseEvent) => {
       if (isPlacing && furnitureManagerRef.current) {
         furnitureManagerRef.current.updatePlacement(e.clientX, e.clientY);
+      } else if (isDraggingItem && furnitureManagerRef.current) {
+        const moved = furnitureManagerRef.current.updateDragging(e.clientX, e.clientY);
+        if (moved) {
+          setPlacedItems(furnitureManagerRef.current.getPlacedItems());
+        }
       }
+    },
+    [isPlacing, isDraggingItem]
+  );
+
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.button !== 0 || isPlacing || !furnitureManagerRef.current) return;
+
+      const didStart = furnitureManagerRef.current.startDragging(e.clientX, e.clientY);
+      if (!didStart) return;
+
+      if (controlsRef.current) {
+        controlsRef.current.enabled = false;
+      }
+      if (orbitControlsRef.current) {
+        orbitControlsRef.current.setEnabled(false);
+      }
+
+      setIsDraggingItem(true);
+      setSelectedFurniture(furnitureManagerRef.current.selected);
+      setPropertiesOpen(!!furnitureManagerRef.current.selected);
     },
     [isPlacing]
   );
 
+  const handleMouseUp = useCallback(() => {
+    if (!isDraggingItem || !furnitureManagerRef.current) return;
+
+    furnitureManagerRef.current.stopDragging();
+    setPlacedItems(furnitureManagerRef.current.getPlacedItems());
+
+    if (viewMode === "walkthrough") {
+      if (controlsRef.current) {
+        controlsRef.current.enabled = true;
+      }
+    } else if (orbitControlsRef.current) {
+      orbitControlsRef.current.setEnabled(true);
+    }
+
+    setIsDraggingItem(false);
+  }, [isDraggingItem, viewMode]);
+
   const handleMouseClick = useCallback(
     (e: React.MouseEvent) => {
-      if (isPlacing && furnitureManagerRef.current && controlsRef.current) {
+      if (isDraggingItem) return;
+
+      if (isPlacing && furnitureManagerRef.current && controlsRef.current && orbitControlsRef.current) {
         const placed = furnitureManagerRef.current.confirmPlacement();
         if (placed) {
           setPlacedItems(furnitureManagerRef.current.getPlacedItems());
         }
-        controlsRef.current.enabled = true;
+        // Re-enable the appropriate controls based on view mode
+        if (viewMode === "walkthrough") {
+          controlsRef.current.enabled = true;
+        } else {
+          orbitControlsRef.current.setEnabled(true);
+        }
         setIsPlacing(false);
+      } else if (furnitureManagerRef.current) {
+        const selected = furnitureManagerRef.current.handleClick(e.clientX, e.clientY);
+        setSelectedFurniture(selected);
+        setPropertiesOpen(!!selected);
       }
     },
-    [isPlacing]
+    [isPlacing, isDraggingItem, viewMode]
   );
 
   const handleRightClick = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
-      if (isPlacing && furnitureManagerRef.current && controlsRef.current) {
+      if (isPlacing && furnitureManagerRef.current && controlsRef.current && orbitControlsRef.current) {
         furnitureManagerRef.current.cancelPlacement();
-        controlsRef.current.enabled = true;
+        // Re-enable the appropriate controls based on view mode
+        if (viewMode === "walkthrough") {
+          controlsRef.current.enabled = true;
+        } else {
+          orbitControlsRef.current.setEnabled(true);
+        }
         setIsPlacing(false);
       }
     },
-    [isPlacing]
+    [isPlacing, viewMode]
   );
 
   // Keyboard shortcut for escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isDraggingItem && furnitureManagerRef.current) {
+        furnitureManagerRef.current.stopDragging();
+        setIsDraggingItem(false);
+        if (viewMode === "walkthrough" && controlsRef.current) {
+          controlsRef.current.enabled = true;
+        } else if (orbitControlsRef.current) {
+          orbitControlsRef.current.setEnabled(true);
+        }
+      }
       if (e.key === "Escape" && isPlacing) {
         furnitureManagerRef.current?.cancelPlacement();
-        if (controlsRef.current) controlsRef.current.enabled = true;
+        // Re-enable the appropriate controls based on view mode
+        if (viewMode === "walkthrough" && controlsRef.current) {
+          controlsRef.current.enabled = true;
+        } else if (orbitControlsRef.current) {
+          orbitControlsRef.current.setEnabled(true);
+        }
         setIsPlacing(false);
       }
       // R to rotate selected
@@ -618,7 +864,7 @@ export function Room3DViewer() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isPlacing, selectedFurniture]);
+  }, [isPlacing, isDraggingItem, selectedFurniture, viewMode]);
 
   // Screenshot
   const handleScreenshot = useCallback(() => {
@@ -650,6 +896,37 @@ export function Room3DViewer() {
     URL.revokeObjectURL(link.href);
   }, [roomData, currentTheme]);
 
+  // WebGL not available — show fallback UI
+  if (webglError) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="max-w-lg rounded-3xl border border-red-200 bg-white/90 p-8 text-center shadow-2xl backdrop-blur-md">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+            <svg className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-foreground">3D Engine Unavailable</h2>
+          <p className="mt-3 text-sm text-muted-foreground">{webglError}</p>
+          <div className="mt-6 space-y-2 rounded-2xl bg-gray-50 p-4 text-left text-xs text-muted-foreground">
+            <p className="font-medium text-foreground">How to fix:</p>
+            <ol className="list-inside list-decimal space-y-1">
+              <li>Open <strong>chrome://settings/system</strong> in your browser</li>
+              <li>Enable <strong>&quot;Use hardware acceleration when available&quot;</strong></li>
+              <li>Restart your browser and try again</li>
+            </ol>
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-6 rounded-xl bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-md hover:bg-primary/90"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex h-screen w-full overflow-hidden bg-[#0a0a1a]">
       {/* Upload Modal */}
@@ -673,15 +950,18 @@ export function Room3DViewer() {
           isOpen={sidebarOpen}
           onToggle={() => setSidebarOpen(!sidebarOpen)}
           onSelectItem={handleStartPlacement}
-          categories={FURNITURE_CATEGORIES}
-          items={FURNITURE_CATALOG}
+          categories={plannerCatalog.categories}
+          items={plannerCatalog.items}
         />
       )}
 
       {/* 3D Viewport */}
       <div
         className="relative flex-1"
+        onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
         onClick={handleMouseClick}
         onContextMenu={handleRightClick}
       >
@@ -693,6 +973,8 @@ export function Room3DViewer() {
           <Toolbar
             currentTheme={currentTheme}
             onThemeChange={handleThemeChange}
+            viewMode={viewMode}
+            onViewModeChange={handleViewModeChange}
             onScreenshot={handleScreenshot}
             onExport={handleExport}
             onSaveLocal={handleSaveLocalProject}
@@ -713,7 +995,7 @@ export function Room3DViewer() {
         )}
 
         {/* Controls Hint */}
-        {!showUploadModal && !controlsLocked && !isPlacing && (
+        {!showUploadModal && !controlsLocked && !isPlacing && viewMode === "walkthrough" && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <div className="rounded-3xl border border-white/20 bg-white/40 px-8 py-6 text-center shadow-2xl backdrop-blur-md">
               <p className="text-lg font-medium text-foreground">
@@ -726,12 +1008,23 @@ export function Room3DViewer() {
           </div>
         )}
 
+        {/* Orbit/TopDown Controls Hint */}
+        {!showUploadModal && !isPlacing && (viewMode === "orbit" || viewMode === "topdown") && (
+          <div className="pointer-events-none absolute bottom-24 left-1/2 -translate-x-1/2">
+            <div className="rounded-3xl border border-white/20 bg-white/40 px-6 py-4 text-center shadow-2xl backdrop-blur-md">
+              <p className="text-sm text-muted-foreground">
+                Left-drag to rotate · Right-drag to pan · Scroll to zoom
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Placement Mode Indicator */}
-        {isPlacing && (
+        {(isPlacing || isDraggingItem) && (
           <div className="pointer-events-none absolute bottom-24 left-1/2 -translate-x-1/2">
             <div className="rounded-2xl border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-900/80 px-6 py-3 text-center shadow-lg backdrop-blur-md">
               <p className="text-sm font-medium text-blue-700 dark:text-blue-200">
-                Click to place · Right-click or ESC to cancel
+                {isPlacing ? "Click to place · Right-click or ESC to cancel" : "Drag selected item to move around the room"}
               </p>
             </div>
           </div>

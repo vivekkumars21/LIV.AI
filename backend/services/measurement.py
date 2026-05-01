@@ -351,12 +351,18 @@ def _estimate_room_dimensions(
     # Room width from FOV geometry
     room_width = (img_w * back_wall_depth) / focal_px
 
-    # Room length ≈ max depth in the scene
+    # Room length: camera-to-back-wall distance IS the room length.
+    # Use the larger of back wall depth and floor far depth.
     floor_region = depth_map[int(h * 0.7):, :]  # bottom 30%
     if floor_region.size > 0:
-        room_length = float(np.percentile(floor_region, 90))
+        floor_far_depth = float(np.percentile(floor_region, 90))
     else:
-        room_length = back_wall_depth * 1.2
+        floor_far_depth = back_wall_depth
+    room_length = max(back_wall_depth, floor_far_depth)
+
+    # Cross-validate: room length should be reasonable relative to width
+    if room_length < room_width * 0.4:
+        room_length = room_width * 1.0  # assume roughly square
 
     # Sanity bounds (typical Indian rooms: 2.5m–8m)
     room_width = max(2.0, min(room_width, 12.0))

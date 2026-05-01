@@ -49,7 +49,7 @@ export function RoomAnalyzer({ onAnalysisComplete }: RoomAnalyzerProps) {
         formData.append('image', selectedImage);
         formData.append('ceiling_height_m', String(ceilingHeight));
 
-        const res = await fetch('http://localhost:8000/api/analyze', {
+        const res = await fetch('/api/python/analyze', {
           method: 'POST',
           body: formData,
         });
@@ -57,6 +57,25 @@ export function RoomAnalyzer({ onAnalysisComplete }: RoomAnalyzerProps) {
         if (res.ok) {
           const data = await res.json();
           setBackendData(data);
+          
+          if (data?.measurement?.room) {
+            setAnalysis(prev => {
+              if (!prev) return prev;
+              const room = data.measurement.room;
+              const areaSqft = room.area_sqft || (room.width * room.length * 10.764);
+              return {
+                ...prev,
+                space: {
+                  ...prev.space,
+                  dimensions: {
+                    estimatedWidth: room.width * 3.28084,
+                    estimatedLength: room.length * 3.28084,
+                    estimatedArea: areaSqft
+                  }
+                }
+              };
+            });
+          }
         }
       } catch (err) {
         console.log('Python backend not available, using frontend-only analysis');
@@ -85,8 +104,20 @@ export function RoomAnalyzer({ onAnalysisComplete }: RoomAnalyzerProps) {
       clearInterval(loadingInterval);
       setProgress(100);
 
-      setAnalysis(result);
-      onAnalysisComplete?.(result);
+      // Merge backend data if it already arrived
+      setBackendData((currentBackendData: any) => {
+        const finalResult = { ...result };
+        if (currentBackendData?.measurement?.room) {
+          const room = currentBackendData.measurement.room;
+          const areaSqft = room.area_sqft || (room.width * room.length * 10.764);
+          finalResult.space.dimensions.estimatedWidth = room.width * 3.28084;
+          finalResult.space.dimensions.estimatedLength = room.length * 3.28084;
+          finalResult.space.dimensions.estimatedArea = areaSqft;
+        }
+        setAnalysis(finalResult);
+        onAnalysisComplete?.(finalResult);
+        return currentBackendData;
+      });
 
       toast({
         title: 'Analysis Complete!',
@@ -173,7 +204,7 @@ export function RoomAnalyzer({ onAnalysisComplete }: RoomAnalyzerProps) {
               </motion.div>
             )}
 
-            {/* ─── Python-Powered Features ──────────────────── */}
+            {/* Python-Powered Features */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}

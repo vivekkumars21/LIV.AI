@@ -30,12 +30,12 @@ export function ImagePreview({
     onAnalyze
 }: ImagePreviewProps) {
     return (
-        <Card className="bg-white/50 backdrop-blur-sm border-white/20 shadow-lg">
-            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none" />
+        <Card className="bg-card text-card-foreground border-border/50 shadow-lg rounded-3xl overflow-hidden">
+            <div className="absolute inset-0 pointer-events-none" />
 
-            <CardHeader className="pb-4 relative z-10">
+            <CardHeader className="bg-secondary/20 pb-4 border-b border-border/50 relative z-10">
                 <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2 text-xl tracking-tight">
+                    <CardTitle className="flex items-center gap-2 text-lg font-bold">
                         <Scan className="w-5 h-5 text-primary" />
                         Analysis Preview
                     </CardTitle>
@@ -43,7 +43,7 @@ export function ImagePreview({
                         variant="ghost"
                         size="sm"
                         onClick={onReset}
-                        className="transition-colors"
+                        className="transition-colors hover:bg-secondary/50 rounded-full"
                     >
                         <RotateCcw className="w-4 h-4 mr-2" />
                         Reset
@@ -51,8 +51,8 @@ export function ImagePreview({
                 </div>
             </CardHeader>
 
-            <CardContent className="space-y-6 pt-6 relative z-10">
-                <div className="relative aspect-video rounded-2xl overflow-hidden bg-muted border border-border shadow-inner">
+            <CardContent className="space-y-6 p-8 relative z-10">
+                <div className="relative aspect-video rounded-2xl overflow-hidden bg-secondary border border-border/50 shadow-inner">
                     <Image
                         src={imagePreview}
                         alt="Room to analyze"
@@ -76,10 +76,10 @@ export function ImagePreview({
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="grid gap-3 bg-white/30 backdrop-blur-sm p-4 rounded-2xl border border-white/20"
+                        className="grid gap-3 bg-secondary/30 p-5 rounded-2xl border border-border/50"
                     >
-                        <Label htmlFor="ceiling-height" className="font-medium tracking-wide">
-                            Reference Ceiling Height (m) <span className="text-muted-foreground font-normal ml-1">— Optional calibration</span>
+                        <Label htmlFor="ceiling-height" className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground">
+                            Reference Ceiling Height (m) <span className="font-medium ml-1 normal-case tracking-normal">— Optional calibration</span>
                         </Label>
                         <div className="relative">
                             <Input
@@ -90,9 +90,9 @@ export function ImagePreview({
                                 onChange={(e) => onCeilingHeightChange(Number(e.target.value))}
                                 min={2.0}
                                 max={5.0}
-                                className="bg-white/50 backdrop-blur-sm border-white/20"
+                                className="bg-background border-input px-4 py-3 h-auto font-medium rounded-xl focus-visible:ring-1 focus-visible:ring-primary/30"
                             />
-                            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-muted-foreground text-sm">
+                            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-muted-foreground font-medium text-sm">
                                 meters
                             </div>
                         </div>
@@ -104,7 +104,7 @@ export function ImagePreview({
                     <motion.div
                         initial={{ opacity: 0, scale: 0.98 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="space-y-4 bg-primary/5 backdrop-blur-sm p-5 rounded-2xl border border-primary/20"
+                        className="space-y-4 bg-primary/5 p-6 rounded-2xl border border-primary/20"
                     >
                         <div className="flex items-center gap-3">
                             <Sparkles className="h-5 w-5 text-primary animate-pulse" />
@@ -127,7 +127,7 @@ export function ImagePreview({
                 {!analysis && !isAnalyzing && (
                     <Button
                         onClick={onAnalyze}
-                        className="w-full h-12 text-base font-semibold tracking-wide"
+                        className="w-full h-14 text-base font-bold tracking-wide rounded-xl shadow-md hover:shadow-lg transition-all"
                         size="lg"
                     >
                         <Scan className="mr-2 h-5 w-5" />

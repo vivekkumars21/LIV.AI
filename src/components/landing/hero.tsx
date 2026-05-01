@@ -31,9 +31,6 @@ export function Hero() {
           <Button size="lg" asChild>
             <Link href="/room-analyzer">Analyze My Room</Link>
           </Button>
-          <Button size="lg" variant="secondary" asChild>
-            <Link href="/ar">Try AR View</Link>
-          </Button>
         </div>
       </div>
     </section>

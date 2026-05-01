@@ -14,18 +14,7 @@ export function Footer() {
         </div>
         <div className="flex flex-col items-center justify-between md:flex-row">
           <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 md:justify-start mb-6 md:mb-0 text-sm font-medium text-gray-500">
-            <Link href="#" className="hover:text-primary" prefetch={false}>
-              About Us
-            </Link>
-            <Link href="#" className="hover:text-primary" prefetch={false}>
-              Contact
-            </Link>
-            <Link href="#" className="hover:text-primary" prefetch={false}>
-              Privacy Policy
-            </Link>
-            <Link href="#" className="hover:text-primary" prefetch={false}>
-              Terms of Service
-            </Link>
+            {/* Links removed for simplicity until pages are implemented */}
           </nav>
           <div className="flex items-center gap-4">
             <Link

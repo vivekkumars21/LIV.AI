@@ -136,6 +136,7 @@ export class RoomBuilder {
     this.buildFloor(data);
     this.buildCeiling(data);
     this.buildWalls(data);
+    this.buildDimensionLabels(data);
     this.buildPointCloud(data);
     this.buildObjectMarkers(data);
   }
@@ -227,8 +228,8 @@ export class RoomBuilder {
       0x222222
     );
     gridHelper.position.set(0, 0.001, length / 2);
-    gridHelper.material.opacity = 0.15;
-    gridHelper.material.transparent = true;
+    (gridHelper.material as THREE.Material).opacity = 0.15;
+    (gridHelper.material as THREE.Material).transparent = true;
     this.roomGroup.add(gridHelper);
   }
 
@@ -331,6 +332,136 @@ export class RoomBuilder {
     if (data.room_texture) {
       this.applyRoomTexture(data.room_texture, data);
     }
+  }
+
+  /**
+   * Build dimension labels showing estimated room size in the 3D view.
+   * Adds measurement lines along width (X), length (Z), and height (Y).
+   */
+  private buildDimensionLabels(data: RoomData) {
+    const { width, length, height } = data.dimensions;
+    const hw = width / 2;
+    const labelY = 0.05; // just above floor
+
+    // Width label — along the front edge (Z=0)
+    this.addDimensionLine(
+      new THREE.Vector3(-hw, labelY, -0.15),
+      new THREE.Vector3(hw, labelY, -0.15),
+      `${width.toFixed(1)}m`,
+      0xff4444
+    );
+
+    // Length label — along the left wall (X = -hw)
+    this.addDimensionLine(
+      new THREE.Vector3(-hw - 0.15, labelY, 0),
+      new THREE.Vector3(-hw - 0.15, labelY, length),
+      `${length.toFixed(1)}m`,
+      0x4444ff
+    );
+
+    // Height label — along the front-left corner
+    this.addDimensionLine(
+      new THREE.Vector3(-hw - 0.15, 0, -0.15),
+      new THREE.Vector3(-hw - 0.15, height, -0.15),
+      `${height.toFixed(1)}m`,
+      0x44bb44
+    );
+
+    // Area label — centred on floor
+    const area = (width * length).toFixed(1);
+    const areaSqFt = (width * length * 10.764).toFixed(0);
+    const areaLabel = this.createDimensionSprite(
+      `${area} m² (${areaSqFt} sq ft)`,
+      { x: 0, y: 0.15, z: length / 2 },
+      0xffffff,
+      0.9
+    );
+    this.roomGroup.add(areaLabel);
+  }
+
+  private addDimensionLine(
+    start: THREE.Vector3,
+    end: THREE.Vector3,
+    label: string,
+    color: number,
+  ) {
+    // The measurement line
+    const points = [start, end];
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    const material = new THREE.LineBasicMaterial({
+      color,
+      opacity: 0.7,
+      transparent: true,
+      linewidth: 2,
+    });
+    const line = new THREE.Line(geometry, material);
+    this.roomGroup.add(line);
+
+    // End caps (small perpendicular ticks)
+    const dir = end.clone().sub(start).normalize();
+    const tickLen = 0.08;
+    // Find perpendicular direction
+    const up = new THREE.Vector3(0, 1, 0);
+    let perp = new THREE.Vector3().crossVectors(dir, up);
+    if (perp.length() < 0.001) {
+      perp = new THREE.Vector3(1, 0, 0);
+    }
+    perp.normalize().multiplyScalar(tickLen);
+
+    for (const pt of [start, end]) {
+      const tickGeo = new THREE.BufferGeometry().setFromPoints([
+        pt.clone().sub(perp),
+        pt.clone().add(perp),
+      ]);
+      const tick = new THREE.Line(tickGeo, material.clone());
+      this.roomGroup.add(tick);
+    }
+
+    // Label at midpoint
+    const mid = start.clone().add(end).multiplyScalar(0.5);
+    // Offset label slightly in the perpendicular direction for readability
+    mid.add(perp.clone().normalize().multiplyScalar(0.12));
+
+    const sprite = this.createDimensionSprite(label, mid, color, 0.6);
+    this.roomGroup.add(sprite);
+  }
+
+  private createDimensionSprite(
+    text: string,
+    position: THREE.Vector3 | { x: number; y: number; z: number },
+    tintColor: number,
+    scale: number = 0.6,
+  ): THREE.Sprite {
+    const canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 64;
+    const ctx = canvas.getContext("2d")!;
+
+    ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+    ctx.roundRect(4, 4, 248, 56, 10);
+    ctx.fill();
+
+    const c = new THREE.Color(tintColor);
+    ctx.fillStyle = `rgb(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)})`;
+    ctx.font = "bold 26px Inter, Arial, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, 128, 32);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const mat = new THREE.SpriteMaterial({
+      map: texture,
+      transparent: true,
+      depthTest: false,
+    });
+    const sprite = new THREE.Sprite(mat);
+    if (position instanceof THREE.Vector3) {
+      sprite.position.copy(position);
+    } else {
+      sprite.position.set(position.x, position.y, position.z);
+    }
+    sprite.scale.set(scale, scale * 0.25, 1);
+    return sprite;
   }
 
   private buildFrontWallWithDoor(

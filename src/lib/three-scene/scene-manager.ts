@@ -14,6 +14,21 @@ export interface SceneManagerOptions {
   pixelRatio?: number;
 }
 
+/**
+ * Check if WebGL is available in the current browser.
+ */
+export function isWebGLAvailable(): boolean {
+  try {
+    const canvas = document.createElement("canvas");
+    return !!(
+      window.WebGLRenderingContext &&
+      (canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
+    );
+  } catch {
+    return false;
+  }
+}
+
 export class SceneManager {
   public scene: THREE.Scene;
   public camera: THREE.PerspectiveCamera;
@@ -28,6 +43,13 @@ export class SceneManager {
   constructor(options: SceneManagerOptions) {
     this.container = options.container;
     this.clock = new THREE.Clock();
+
+    // Check WebGL availability before attempting to create renderer
+    if (!isWebGLAvailable()) {
+      throw new Error(
+        "WebGL is not available. Please enable hardware acceleration in your browser settings, or try a different browser."
+      );
+    }
 
     // Scene
     this.scene = new THREE.Scene();

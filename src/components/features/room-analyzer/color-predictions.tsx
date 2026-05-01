@@ -18,9 +18,9 @@ interface ColorAnalysis {
 }
 
 const MOOD_BADGES: Record<string, { bg: string; text: string; icon: string }> = {
-    warm: { bg: 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-500/30', text: 'text-orange-700 dark:text-orange-400', icon: '🔥' },
-    cool: { bg: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-500/30', text: 'text-blue-700 dark:text-blue-400', icon: '❄️' },
-    neutral: { bg: 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-500/30', text: 'text-gray-700 dark:text-gray-300', icon: '⚖️' },
+    warm: { bg: 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-500/30', text: 'text-orange-700 dark:text-orange-400', icon: '' },
+    cool: { bg: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-500/30', text: 'text-blue-700 dark:text-blue-400', icon: '' },
+    neutral: { bg: 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-500/30', text: 'text-gray-700 dark:text-gray-300', icon: '' },
 };
 
 function ColorSwatch({ color, percentage, size = 'md' }: { color: string; percentage?: number; size?: 'sm' | 'md' }) {
@@ -28,7 +28,7 @@ function ColorSwatch({ color, percentage, size = 'md' }: { color: string; percen
     return (
         <div className="flex flex-col items-center gap-1.5 group">
             <div
-                className={`${dim} rounded-xl border-2 border-white/10 shadow-lg group-hover:scale-110 transition-transform cursor-pointer`}
+                className={`${dim} rounded-xl border-2 border-border/50 shadow-lg group-hover:scale-110 transition-transform cursor-pointer`}
                 style={{ backgroundColor: color }}
                 title={color}
             />
@@ -54,7 +54,7 @@ export default function ColorPredictions({ imageFile }: { imageFile?: File }) {
             const formData = new FormData();
             formData.append('image', imageFile);
 
-            const res = await fetch('http://localhost:8000/api/colors', {
+            const res = await fetch('/api/python/colors', {
                 method: 'POST',
                 body: formData,
             });
@@ -76,8 +76,8 @@ export default function ColorPredictions({ imageFile }: { imageFile?: File }) {
 
     if (!imageFile) {
         return (
-            <div className="bg-white/40 backdrop-blur-md border border-white/20 rounded-3xl p-6 shadow-sm">
-                <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">🎨 Color Predictions</h3>
+            <div className="bg-card text-card-foreground border border-border/50 rounded-3xl p-6 shadow-sm">
+                <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">Color Predictions</h3>
                 <p className="text-muted-foreground text-sm">Upload a room image to get AI-powered color analysis</p>
             </div>
         );
@@ -85,8 +85,8 @@ export default function ColorPredictions({ imageFile }: { imageFile?: File }) {
 
     if (loading) {
         return (
-            <div className="bg-white/40 backdrop-blur-md border border-white/20 rounded-3xl p-6 shadow-sm">
-                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">🎨 Color Predictions</h3>
+            <div className="bg-card text-card-foreground border border-border/50 rounded-3xl p-6 shadow-sm">
+                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">Color Predictions</h3>
                 <div className="flex items-center gap-3">
                     <div className="flex gap-1">
                         {[0, 1, 2, 3, 4].map((i) => (
@@ -105,8 +105,8 @@ export default function ColorPredictions({ imageFile }: { imageFile?: File }) {
 
     if (error) {
         return (
-            <div className="bg-white/40 backdrop-blur-md border border-white/20 rounded-3xl p-6 shadow-sm">
-                <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">🎨 Color Predictions</h3>
+            <div className="bg-card text-card-foreground border border-border/50 rounded-3xl p-6 shadow-sm">
+                <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">Color Predictions</h3>
                 <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
                 <button onClick={analyzeColors} className="text-primary text-sm mt-2 hover:underline">Retry</button>
             </div>
@@ -118,10 +118,10 @@ export default function ColorPredictions({ imageFile }: { imageFile?: File }) {
     const mood = MOOD_BADGES[analysis.mood] || MOOD_BADGES.neutral;
 
     return (
-        <div className="bg-white/40 backdrop-blur-md border border-white/20 rounded-3xl p-6 space-y-5 shadow-sm">
+        <div className="bg-card text-card-foreground border border-border/50 rounded-3xl p-6 space-y-5 shadow-sm">
             {/* Header with Mood Badge */}
             <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-lg flex items-center gap-2">🎨 Color Predictions</h3>
+                <h3 className="font-semibold text-lg flex items-center gap-2">Color Predictions</h3>
                 <div className={`${mood.bg} ${mood.text} text-xs px-3 py-1.5 rounded-full border font-medium flex items-center gap-1.5`}>
                     {mood.icon} {analysis.mood.charAt(0).toUpperCase() + analysis.mood.slice(1)} Mood
                 </div>
@@ -177,9 +177,9 @@ export default function ColorPredictions({ imageFile }: { imageFile?: File }) {
             </div>
 
             {/* Wall Finish Suggestion */}
-            <div className="bg-white/30 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+            <div className="bg-secondary/40 rounded-xl p-4 border border-border/50">
                 <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Suggested Wall Finish</p>
-                <p className="text-white font-medium capitalize">{analysis.wall_finish}</p>
+                <p className="text-foreground font-semibold capitalize">{analysis.wall_finish}</p>
             </div>
         </div>
     );

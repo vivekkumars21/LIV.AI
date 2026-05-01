@@ -37,8 +37,8 @@ function ConfidenceBadge({ confidence }: { confidence: number }) {
 export default function SizeEstimator({ roomData, confidence }: SizeEstimatorProps) {
     if (!roomData) {
         return (
-            <div className="bg-white/40 backdrop-blur-md border border-white/20 rounded-3xl p-6 shadow-sm">
-                <h3 className="font-semibold text-lg flex items-center gap-2">📐 Room Size</h3>
+            <div className="bg-card text-card-foreground border border-border/50 rounded-3xl p-6 shadow-sm">
+                <h3 className="font-semibold text-lg flex items-center gap-2">Room Size</h3>
                 <p className="text-muted-foreground text-sm mt-2">Upload a room image to estimate size in sq ft</p>
             </div>
         );
@@ -50,9 +50,9 @@ export default function SizeEstimator({ roomData, confidence }: SizeEstimatorPro
     const wallSqm = roomData.wall_area_sqm || ((2 * roomData.width + 2 * roomData.length) * roomData.height);
 
     return (
-        <div className="bg-white/40 backdrop-blur-md border border-white/20 rounded-3xl p-6 space-y-4 shadow-sm">
+        <div className="bg-card text-card-foreground border border-border/50 rounded-3xl p-6 space-y-4 shadow-sm">
             <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-lg flex items-center gap-2">📐 Room Size Estimate</h3>
+                <h3 className="font-semibold text-lg flex items-center gap-2">Room Size Estimate</h3>
                 {confidence !== undefined && <ConfidenceBadge confidence={confidence} />}
             </div>
 
@@ -72,17 +72,17 @@ export default function SizeEstimator({ roomData, confidence }: SizeEstimatorPro
 
             {/* Dimensions */}
             <div className="grid grid-cols-3 gap-2">
-                <div className="bg-white/30 backdrop-blur-sm rounded-xl p-3 border border-white/20 text-center">
+                <div className="bg-secondary/40 rounded-xl p-3 border border-border/50 text-center">
                     <p className="text-muted-foreground text-[10px] uppercase tracking-wider mb-0.5">Width</p>
                     <p className="font-semibold text-sm">{roomData.width.toFixed(1)}m</p>
                     <p className="text-muted-foreground text-[10px]">{(roomData.width * 3.281).toFixed(1)} ft</p>
                 </div>
-                <div className="bg-white/30 backdrop-blur-sm rounded-xl p-3 border border-white/20 text-center">
+                <div className="bg-secondary/40 rounded-xl p-3 border border-border/50 text-center">
                     <p className="text-muted-foreground text-[10px] uppercase tracking-wider mb-0.5">Length</p>
                     <p className="font-semibold text-sm">{roomData.length.toFixed(1)}m</p>
                     <p className="text-muted-foreground text-[10px]">{(roomData.length * 3.281).toFixed(1)} ft</p>
                 </div>
-                <div className="bg-white/30 backdrop-blur-sm rounded-xl p-3 border border-white/20 text-center">
+                <div className="bg-secondary/40 rounded-xl p-3 border border-border/50 text-center">
                     <p className="text-muted-foreground text-[10px] uppercase tracking-wider mb-0.5">Height</p>
                     <p className="font-semibold text-sm">{roomData.height.toFixed(1)}m</p>
                     <p className="text-muted-foreground text-[10px]">{(roomData.height * 3.281).toFixed(1)} ft</p>
@@ -91,7 +91,6 @@ export default function SizeEstimator({ roomData, confidence }: SizeEstimatorPro
 
             {/* Tip */}
             <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-500/20 rounded-xl px-4 py-2.5 text-amber-800 dark:text-amber-300 text-xs flex items-start gap-2">
-                <span>💡</span>
                 <span>For best accuracy, calibrate with a known reference (door frame = 2.1m / 6.9 ft)</span>
             </div>
         </div>

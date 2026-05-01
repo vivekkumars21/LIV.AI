@@ -64,8 +64,18 @@ class ObjectDetector:
 
         try:
             from ultralytics import YOLO
+            import torch
 
+            # Temporary fix for PyTorch 2.6 weights_only=True default breaking older ultralytics
+            _original_load = torch.load
+            def _custom_load(*args, **kwargs):
+                kwargs.setdefault("weights_only", False)
+                return _original_load(*args, **kwargs)
+            
+            torch.load = _custom_load
             self._model = YOLO("yolov8m-seg.pt")
+            torch.load = _original_load # restore it
+
             self._is_loaded = True
             logger.info("YOLOv8m-seg loaded successfully")
         except Exception as e:

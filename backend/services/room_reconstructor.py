@@ -168,12 +168,13 @@ def depth_to_point_cloud(
     # Filter out invalid depths
     valid = (depth_sampled > 0.1) & (depth_sampled < 20.0)
 
-    # Compute 3D coordinates (camera frame → room frame)
+    # Compute 3D coordinates (camera frame → Three.js room frame)
     # Camera: Z forward, X right, Y down
-    # Room: X right, Y up, Z back (Three.js convention)
-    Z = depth_sampled[valid]
-    X = (uu[valid] - cx) * Z / fx
-    Y = -(vv[valid] - cy) * Z / fy  # Flip Y for Three.js (Y-up)
+    # Room:   X right, Y up, Z forward (Z=0 at camera, Z=room_length at back wall)
+    Z_cam = depth_sampled[valid]
+    X = (uu[valid] - cx) * Z_cam / fx
+    Y = -(vv[valid] - cy) * Z_cam / fy  # Flip Y for Three.js (Y-up)
+    Z = Z_cam  # Z = depth = distance from camera (front) into room
 
     points = np.stack([X, Y, Z], axis=-1)
 
@@ -228,10 +229,19 @@ def estimate_room_planes(
     # Room width from back wall depth + FOV
     room_width = (img_w * back_wall_depth) / focal_px
 
-    # Room length from floor depth range
-    room_length = float(np.percentile(depth_map[int(h * 0.7):, :], 90)) if depth_map[int(h * 0.7):, :].size > 0 else back_wall_depth * 1.2
+    # Room length: the camera-to-back-wall distance IS the room length
+    # (camera is assumed at front of room). Use the larger of back wall
+    # depth and floor far depth for robustness.
+    floor_far_region = depth_map[int(h * 0.7):, :]
+    floor_far_depth = float(np.percentile(floor_far_region, 90)) if floor_far_region.size > 0 else back_wall_depth
+    room_length = max(back_wall_depth, floor_far_depth)
 
-    # Sanity bounds
+    # Cross-validate: room length should be at least room_width * 0.4
+    # (very few rooms are narrower than 40% of their length)
+    if room_length < room_width * 0.4:
+        room_length = room_width * 1.0  # assume roughly square
+
+    # Sanity bounds (typical rooms: 2m–12m)
     room_width = max(2.0, min(room_width, 12.0))
     room_length = max(2.5, min(room_length, 15.0))
 
@@ -243,6 +253,33 @@ def estimate_room_planes(
         "room_width": round(room_width, 2),
         "room_length": round(room_length, 2),
     }
+
+
+def _estimate_object_depth_dim(name: str, width: float, height: float) -> float:
+    """Estimate front-to-back depth of an object from its type and measured width."""
+    name_lower = name.lower()
+    depth_ratios = {
+        "couch": 0.45,
+        "bed": 1.2,
+        "dining table": 0.6,
+        "chair": 0.5,
+        "tv": 0.05,
+        "refrigerator": 0.65,
+        "oven": 0.7,
+        "microwave": 0.5,
+        "sink": 0.5,
+        "toilet": 0.7,
+        "potted plant": 1.0,
+        "laptop": 0.7,
+        "book": 0.02,
+        "clock": 0.05,
+        "vase": 1.0,
+        "bottle": 1.0,
+    }
+    for key, ratio in depth_ratios.items():
+        if key in name_lower:
+            return round(width * ratio, 2)
+    return round(width * 0.6, 2)
 
 
 def detect_windows_doors(
@@ -448,12 +485,15 @@ def reconstruct_room(
         # X: proportional position mapped to room width
         x_3d = ((bbox_cx / img_w) - 0.5) * room_w
 
-        # Z: mapped from depth (closer depth = smaller Z)
-        z_3d = obj_depth
+        # Z: use depth value, clamped to room bounds
+        z_3d = max(0.1, min(obj_depth, room_l - 0.1))
 
-        # Y: bottom of object at floor level for floor-standing items
+        # Real-world dimensions via pinhole model
         real_w = (det.pixel_width * obj_depth) / focal_px
         real_h = (det.pixel_height * obj_depth) / focal_px
+
+        # Estimate front-to-back depth using object type heuristics
+        real_d = _estimate_object_depth_dim(det.name, real_w, real_h)
 
         # Estimate Y position based on object type
         name_lower = det.name.lower()
@@ -467,11 +507,15 @@ def reconstruct_room(
             y_pos_ratio = bbox_cy / img_h
             y_3d = room_h * (1 - y_pos_ratio)
 
+        # Clamp X so object stays within room walls
+        hw = room_w / 2
+        x_3d = max(-hw + real_w / 2, min(x_3d, hw - real_w / 2))
+
         mesh.objects_3d.append({
             "name": det.name,
             "confidence": round(det.confidence, 3),
             "position": [round(x_3d, 2), round(y_3d, 2), round(z_3d, 2)],
-            "dimensions": [round(real_w, 2), round(real_h, 2), round(real_w * 0.6, 2)],
+            "dimensions": [round(real_w, 2), round(real_h, 2), round(real_d, 2)],
             "bbox": det.bbox,
         })
 

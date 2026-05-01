@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { products } from '@/lib/products';
+import { useEffect, useState } from 'react';
+import { products as localProducts, type Product } from '@/lib/products';
 import { ProductCard } from '@/components/features/shop/product-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,9 +10,28 @@ import { Header } from '@/components/landing/header';
 import { Footer } from '@/components/landing/footer';
 
 export default function ShopPage() {
+    const [products, setProducts] = useState<Product[]>(localProducts);
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [priceSort, setPriceSort] = useState<'asc' | 'desc' | null>(null);
+
+    useEffect(() => {
+        const loadProducts = async () => {
+            try {
+                const response = await fetch('/api/products?limit=300', { cache: 'no-store' });
+                if (!response.ok) return;
+                const raw = await response.text();
+                const data = raw ? JSON.parse(raw) : [];
+                if (Array.isArray(data) && data.length > 0) {
+                    setProducts(data as Product[]);
+                }
+            } catch {
+                // Keep local fallback catalogue when backend is unavailable.
+            }
+        };
+
+        loadProducts();
+    }, []);
 
     const categories = Array.from(new Set(products.map((p) => p.category)));
 

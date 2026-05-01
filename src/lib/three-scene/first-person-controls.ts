@@ -259,6 +259,16 @@ export class FirstPersonControls {
     this.euler.setFromQuaternion(this.camera.quaternion);
   }
 
+  /**
+   * Enable or disable the controls.
+   */
+  setEnabled(enabled: boolean) {
+    this.enabled = enabled;
+    if (!enabled && this.isLocked) {
+      document.exitPointerLock();
+    }
+  }
+
   get locked(): boolean {
     return this.isLocked;
   }

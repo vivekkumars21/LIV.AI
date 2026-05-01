@@ -6,17 +6,47 @@ Run: uvicorn backend.main:app --reload --port 8000
 """
 
 import io
+import os
+import time
+import shutil
 import base64
 import asyncio
 import logging
+import subprocess
+from pathlib import Path
 from contextlib import asynccontextmanager
 from typing import Optional
 
 import numpy as np
 from PIL import Image
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
+import httpx
+from dotenv import load_dotenv
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+
+# ─── Logging ─────────────────────────────────────────────────
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+logger = logging.getLogger("intrakart-backend")
+
+# Load environment variables
+env_path = Path(__file__).resolve().parents[1] / ".env.local"
+logger.info(f"Loading environment from {env_path}")
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path, override=True)
+    logger.info("Loaded .env.local")
+else:
+    logger.warning(f".env.local not found at {env_path}")
+    # Try .env as fallback
+    fallback_env = Path(__file__).resolve().parents[1] / ".env"
+    if fallback_env.exists():
+        load_dotenv(dotenv_path=fallback_env)
+        logger.info("Loaded .env")
+
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 import torch
 
@@ -34,29 +64,62 @@ from backend.services.color_analyzer import analyze_colors
 from backend.services.budget_calculator import calculate_budget, get_available_project_types
 from backend.services.room_reconstructor import reconstruct_room
 
-# DB imports
-from sqlalchemy.orm import Session
-from backend.database import SessionLocal, engine, Base
-from backend.models.professional import DBProfessional, DBProfessionalReview
-from backend.models.project import DBProject
+# Cloud DB service
+from backend.services.supabase_service import SupabaseService
 
-# Initialize DB
-Base.metadata.create_all(bind=engine)
 
-def get_db_session():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+_next_process: Optional[subprocess.Popen] = None
 
-# ─── Logging ─────────────────────────────────────────────────
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-)
-logger = logging.getLogger("intrakart-backend")
+def _project_root() -> Path:
+    return Path(__file__).resolve().parents[1]
+
+
+def _frontend_base_url() -> str:
+    return os.getenv("FRONTEND_BASE_URL", "http://127.0.0.1:9002")
+
+
+def _start_frontend_server() -> None:
+    global _next_process
+
+    if os.getenv("START_FRONTEND", "true").lower() in {"0", "false", "no"}:
+        logger.info("Skipping frontend startup (START_FRONTEND disabled).")
+        return
+
+    if _next_process and _next_process.poll() is None:
+        return
+
+    npm_cmd = shutil.which("npm.cmd") or shutil.which("npm")
+    if not npm_cmd:
+        logger.warning("npm was not found on PATH. Frontend proxy will not be available.")
+        return
+
+    root = _project_root()
+    logger.info("Starting Next frontend process from %s", root)
+    _next_process = subprocess.Popen(
+        [npm_cmd, "run", "dev", "--", "--hostname", "127.0.0.1", "--port", "9002"],
+        cwd=str(root),
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+    time.sleep(2)
+
+
+def _stop_frontend_server() -> None:
+    global _next_process
+    if not _next_process:
+        return
+
+    if _next_process.poll() is None:
+        logger.info("Stopping Next frontend process.")
+        _next_process.terminate()
+        try:
+            _next_process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            _next_process.kill()
+
+    _next_process = None
 
 # ─── Lifespan (model preloading) ─────────────────────────────
 
@@ -68,8 +131,10 @@ async def lifespan(app: FastAPI):
     logger.info("IntraKart Measurement Backend starting...")
     logger.info("=" * 60)
     logger.info("Models will load lazily on first /api/analyze request.")
+    _start_frontend_server()
     logger.info("Server ready to accept requests.")
     yield
+    _stop_frontend_server()
     logger.info("Server shutting down.")
 
 
@@ -84,6 +149,8 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
         "http://localhost:9002",
         "http://localhost:3000",
         "http://127.0.0.1:9002",
@@ -153,7 +220,36 @@ class ProjectUpdate(BaseModel):
     notes: Optional[str] = None
 
 
+class AuthRequest(BaseModel):
+    email: str
+    password: str
+    full_name: Optional[str] = None
+
+
+class ProductCreate(BaseModel):
+    name: str
+    category: str
+    price: float
+    image: str
+    description: str
+    dimensions: Optional[str] = None
+    material: Optional[str] = None
+    stock: Optional[int] = 0
+    features: Optional[list[str]] = []
+
+
 # ─── Endpoints ───────────────────────────────────────────────
+
+
+@app.get("/")
+async def root():
+    """Human-friendly root endpoint for quick browser checks."""
+    return {
+        "service": "IntraKart Advanced Measurement API",
+        "status": "ok",
+        "docs": "/docs",
+        "health": "/api/health",
+    }
 
 
 @app.get("/api/health")
@@ -178,6 +274,71 @@ async def health_check():
         "device": depth_estimator.device,
         "gpu": gpu_info,
     }
+
+
+def _get_supabase_service() -> SupabaseService:
+    service = SupabaseService.from_env()
+    if not service:
+        raise HTTPException(
+            status_code=503,
+            detail="Supabase is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY.",
+        )
+    return service
+
+
+@app.post("/api/auth/signup")
+def auth_signup(payload: AuthRequest):
+    try:
+        return _get_supabase_service().sign_up(
+            email=payload.email,
+            password=payload.password,
+            full_name=payload.full_name,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/auth/login")
+def auth_login(payload: AuthRequest):
+    try:
+        return _get_supabase_service().sign_in(
+            email=payload.email,
+            password=payload.password,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/auth/resend-confirmation")
+def auth_resend_confirmation(payload: AuthRequest):
+    try:
+        success = _get_supabase_service().resend_confirmation(email=payload.email)
+        if not success:
+            raise Exception("Failed to resend confirmation email")
+        return {"success": True, "message": "Confirmation email resent"}
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.get("/api/products")
+def list_products(limit: int = 200):
+    try:
+        limit = max(1, min(limit, 500))
+        return _get_supabase_service().list_products(limit)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/products")
+def create_product(payload: ProductCreate):
+    try:
+        return _get_supabase_service().create_product(payload.dict())
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 @app.post("/api/analyze")
@@ -281,7 +442,7 @@ async def reconstruct_room_endpoint(
         ),
     )
 
-    # Also generate depth heatmap and room texture as base64
+    # Also generate depth heatmap as base64 (reuse depth from reconstruction)
     depth_map = await loop.run_in_executor(
         None, lambda: depth_estimator.estimate_depth(pil_image)
     )
@@ -411,200 +572,190 @@ async def list_project_types():
     return get_available_project_types()
 
 
-# ─── Local Projects (SQLite) ─────────────────────────────────
+# ─── Cloud Projects (Supabase) ───────────────────────────────
+
+def _extract_bearer_token(request: Request) -> str:
+    auth_header = request.headers.get("authorization", "")
+    if not auth_header.lower().startswith("bearer "):
+        raise HTTPException(status_code=401, detail="Missing bearer token")
+    token = auth_header.split(" ", 1)[1].strip()
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing bearer token")
+    return token
+
+
+def _get_authenticated_user_id(request: Request) -> str:
+    token = _extract_bearer_token(request)
+    service = _get_supabase_service()
+    try:
+        user = service.get_user_from_token(token)
+        user_id = user.get("id")
+        if not user_id:
+            raise RuntimeError("Invalid token user")
+        return str(user_id)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=401, detail=f"Unauthorized: {exc}")
+
 
 @app.post("/api/projects")
-def create_project(project: ProjectCreate, db: Session = Depends(get_db_session)):
-    db_project = DBProject(
-        name=project.name,
-        theme=project.theme,
-        room_data=project.room_data,
-        furniture_data=project.furniture_data,
-        notes=project.notes or "",
-    )
-    db.add(db_project)
-    db.commit()
-    db.refresh(db_project)
-
-    return {
-        "id": str(db_project.id),
-        "name": db_project.name,
-        "theme": db_project.theme,
-        "room_data": db_project.room_data,
-        "furniture_data": db_project.furniture_data,
-        "notes": db_project.notes,
-        "created_at": db_project.created_at,
-        "updated_at": db_project.updated_at,
+def create_project(project: ProjectCreate, request: Request):
+    user_id = _get_authenticated_user_id(request)
+    payload = {
+        "name": project.name,
+        "theme": project.theme,
+        "room_data": project.room_data,
+        "furniture_data": project.furniture_data,
+        "notes": project.notes or "",
     }
+    try:
+        return _get_supabase_service().create_room_project(user_id=user_id, payload=payload)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 @app.get("/api/projects")
-def list_projects(limit: int = 20, db: Session = Depends(get_db_session)):
+def list_projects(request: Request, limit: int = 20):
+    user_id = _get_authenticated_user_id(request)
     limit = max(1, min(limit, 100))
-    projects = (
-        db.query(DBProject)
-        .order_by(DBProject.updated_at.desc())
-        .limit(limit)
-        .all()
-    )
+    try:
+        projects = _get_supabase_service().list_room_projects(user_id=user_id, limit=limit)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
     return [
         {
-            "id": str(p.id),
-            "name": p.name,
-            "theme": p.theme,
-            "furniture_count": len(p.furniture_data or []),
-            "room_dimensions": (p.room_data or {}).get("dimensions", {}),
-            "created_at": p.created_at,
-            "updated_at": p.updated_at,
+            "id": p.get("id"),
+            "name": p.get("name"),
+            "theme": p.get("theme"),
+            "furniture_count": len(p.get("furniture_data") or []),
+            "room_dimensions": (p.get("room_data") or {}).get("dimensions", {}),
+            "created_at": p.get("created_at"),
+            "updated_at": p.get("updated_at"),
         }
         for p in projects
     ]
 
 
 @app.get("/api/projects/{project_id}")
-def get_project(project_id: str, db: Session = Depends(get_db_session)):
-    project = db.query(DBProject).filter(DBProject.id == project_id).first()
+def get_project(project_id: str, request: Request):
+    user_id = _get_authenticated_user_id(request)
+    try:
+        project = _get_supabase_service().get_room_project(user_id=user_id, project_id=project_id)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-
-    return {
-        "id": str(project.id),
-        "name": project.name,
-        "theme": project.theme,
-        "room_data": project.room_data,
-        "furniture_data": project.furniture_data,
-        "notes": project.notes,
-        "created_at": project.created_at,
-        "updated_at": project.updated_at,
-    }
+    return project
 
 
 @app.put("/api/projects/{project_id}")
-def update_project(project_id: str, payload: ProjectUpdate, db: Session = Depends(get_db_session)):
-    project = db.query(DBProject).filter(DBProject.id == project_id).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-
-    if payload.name is not None:
-        project.name = payload.name
-    if payload.theme is not None:
-        project.theme = payload.theme
-    if payload.room_data is not None:
-        project.room_data = payload.room_data
-    if payload.furniture_data is not None:
-        project.furniture_data = payload.furniture_data
-    if payload.notes is not None:
-        project.notes = payload.notes
-
-    db.commit()
-    db.refresh(project)
-
-    return {
-        "id": str(project.id),
-        "name": project.name,
-        "theme": project.theme,
-        "room_data": project.room_data,
-        "furniture_data": project.furniture_data,
-        "notes": project.notes,
-        "created_at": project.created_at,
-        "updated_at": project.updated_at,
+def update_project(project_id: str, payload: ProjectUpdate, request: Request):
+    user_id = _get_authenticated_user_id(request)
+    patch = {
+        "name": payload.name,
+        "theme": payload.theme,
+        "room_data": payload.room_data,
+        "furniture_data": payload.furniture_data,
+        "notes": payload.notes,
     }
+    try:
+        updated = _get_supabase_service().update_room_project(
+            user_id=user_id,
+            project_id=project_id,
+            payload=patch,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    if not updated:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return updated
 
 
 @app.delete("/api/projects/{project_id}")
-def delete_project(project_id: str, db: Session = Depends(get_db_session)):
-    project = db.query(DBProject).filter(DBProject.id == project_id).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
+def delete_project(project_id: str, request: Request):
+    user_id = _get_authenticated_user_id(request)
+    try:
+        deleted = _get_supabase_service().delete_room_project(user_id=user_id, project_id=project_id)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
-    db.delete(project)
-    db.commit()
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Project not found")
     return {"success": True, "id": project_id}
 
 
 # ─── Professionals Marketplace Endpoints ─────────────────────
 
 @app.post("/api/professionals")
-def register_professional(prof: ProfessionalCreate, db: Session = Depends(get_db_session)):
-    db_prof = DBProfessional(**prof.dict())
-    db.add(db_prof)
-    db.commit()
-    db.refresh(db_prof)
-    res = {column.name: getattr(db_prof, column.name) for column in db_prof.__table__.columns}
-    res["id"] = str(res["id"])
-    return res
+def register_professional(prof: ProfessionalCreate):
+    try:
+        return _get_supabase_service().register_professional(prof.dict())
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 @app.get("/api/professionals")
-def get_professionals(city: str, profession: Optional[str] = None, sort_by: str = "rating", db: Session = Depends(get_db_session)):
-    query = db.query(DBProfessional).filter(DBProfessional.city.ilike(f"%{city.strip()}%"))
-    if profession:
-        query = query.filter(DBProfessional.profession == profession)
-        
-    if sort_by == "rating":
-        query = query.order_by(DBProfessional.rating.desc())
-    elif sort_by == "price_low":
-        query = query.order_by(DBProfessional.visiting_charge_inr.asc())
-    elif sort_by == "price_high":
-        query = query.order_by(DBProfessional.visiting_charge_inr.desc())
-    elif sort_by == "experience":
-        query = query.order_by(DBProfessional.experience_years.desc())
-        
-    results = []
-    for p in query.all():
-        res = {column.name: getattr(p, column.name) for column in p.__table__.columns}
-        res["id"] = str(res["id"])
-        results.append(res)
-    return results
+def get_professionals(city: str, profession: Optional[str] = None, sort_by: str = "rating"):
+    try:
+        return _get_supabase_service().get_professionals(city=city, profession=profession, sort_by=sort_by)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 @app.get("/api/professionals/cities/list")
-def get_cities(db: Session = Depends(get_db_session)):
-    cities = db.query(DBProfessional.city).distinct().all()
-    return [c[0] for c in cities if c[0]]
+def get_cities():
+    try:
+        return _get_supabase_service().get_professional_cities()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 @app.get("/api/professionals/{prof_id}")
-def get_professional(prof_id: str, db: Session = Depends(get_db_session)):
-    prof = db.query(DBProfessional).filter(DBProfessional.id == prof_id).first()
-    if not prof:
-        raise HTTPException(status_code=404, detail="Professional not found")
-    res = {column.name: getattr(prof, column.name) for column in prof.__table__.columns}
-    res["id"] = str(res["id"])
-    return res
+def get_professional(prof_id: str):
+    try:
+        prof = _get_supabase_service().get_professional(prof_id)
+        if not prof:
+            raise HTTPException(status_code=404, detail="Professional not found")
+        return prof
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 @app.post("/api/professionals/{prof_id}/reviews")
-def add_review(prof_id: str, review: ReviewCreate, db: Session = Depends(get_db_session)):
-    prof = db.query(DBProfessional).filter(DBProfessional.id == prof_id).first()
-    if not prof:
-        raise HTTPException(status_code=404, detail="Professional not found")
-        
-    db_review = DBProfessionalReview(
-        professional_id=prof_id,
-        reviewer_name=review.reviewer_name,
-        rating=review.rating,
-        comment=review.comment
-    )
-    db.add(db_review)
-    
-    prof.review_count += 1
-    prof.rating = ((float(prof.rating) * (prof.review_count - 1)) + review.rating) / prof.review_count
-    
-    db.commit()
-    db.refresh(db_review)
-    res = {column.name: getattr(db_review, column.name) for column in db_review.__table__.columns}
-    res["id"] = str(res["id"])
-    res["professional_id"] = str(res["professional_id"])
-    return res
+def add_review(prof_id: str, review: ReviewCreate):
+    try:
+        return _get_supabase_service().add_professional_review(prof_id, review.dict())
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 @app.get("/api/professionals/{prof_id}/reviews")
-def get_reviews(prof_id: str, db: Session = Depends(get_db_session)):
-    reviews = db.query(DBProfessionalReview).filter(DBProfessionalReview.professional_id == prof_id).order_by(DBProfessionalReview.created_at.desc()).all()
-    results = []
-    for r in reviews:
-        res = {column.name: getattr(r, column.name) for column in r.__table__.columns}
-        res["id"] = str(res["id"])
-        res["professional_id"] = str(res["professional_id"])
-        results.append(res)
-    return results
+def get_reviews(prof_id: str):
+    try:
+        return _get_supabase_service().get_professional_reviews(prof_id)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+# ─── Products & Furniture Catalog Endpoints ───────────────────
+
+@app.get("/api/products")
+def list_products(limit: int = 100):
+    try:
+        return _get_supabase_service().list_products(limit=limit)
+    except Exception as exc:
+        # Fallback for when Supabase is not ready
+        logger.warning(f"Supabase products fetch failed: {exc}. Returning empty list.")
+        return []
+
+@app.get("/api/furniture")
+def list_furniture(category: Optional[str] = None, limit: int = 200):
+    try:
+        return _get_supabase_service().list_furniture_items(category=category, limit=limit)
+    except Exception as exc:
+        logger.warning(f"Supabase furniture fetch failed: {exc}. Returning empty list.")
+        return []
 
 
 # ─── Helpers ─────────────────────────────────────────────────
@@ -649,3 +800,51 @@ def _draw_detection_overlay(image: Image.Image, objects) -> Image.Image:
 
     result = cv2.cvtColor(img_cv, cv2.COLOR_BGR2RGB)
     return Image.fromarray(result)
+
+
+@app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"])
+async def frontend_proxy(full_path: str, request: Request):
+    # FastAPI routes are resolved before this catch-all.
+    # Any remaining /api/* path is forwarded to Next so Next API routes work in one-host mode.
+
+    target = f"{_frontend_base_url().rstrip('/')}/{full_path}"
+    if request.url.query:
+        target = f"{target}?{request.url.query}"
+
+    headers = {
+        key: value
+        for key, value in request.headers.items()
+        if key.lower() not in {"host", "content-length", "connection"}
+    }
+    body = await request.body()
+
+    try:
+        async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
+            upstream = await client.request(
+                request.method,
+                target,
+                headers=headers,
+                content=body if body else None,
+            )
+    except Exception as exc:
+        logger.exception("Frontend proxy failure: %s", exc)
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "Frontend unavailable",
+                "message": "FastAPI is running, but the Next frontend is not reachable.",
+                "target": _frontend_base_url(),
+            },
+        )
+
+    passthrough_headers = {
+        key: value
+        for key, value in upstream.headers.items()
+        if key.lower() not in {"content-encoding", "transfer-encoding", "connection"}
+    }
+
+    return Response(
+        content=upstream.content,
+        status_code=upstream.status_code,
+        headers=passthrough_headers,
+    )

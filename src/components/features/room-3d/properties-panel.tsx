@@ -42,7 +42,6 @@ export function PropertiesPanel({
         <button
           onClick={onClose}
           className="rounded-lg p-1 text-muted-foreground hover:bg-white/50 hover:text-foreground">
-        >
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -60,7 +59,7 @@ export function PropertiesPanel({
           Position
         </h4>
         <div className="grid grid-cols-3 gap-2">
-          {("x", "y", "z"] as const).map((axis) => (
+          {(["x", "y", "z"] as const).map((axis) => (
             <div key={axis} className="text-center">
               <div className="text-[10px] uppercase text-muted-foreground/60">{axis}</div>
               <div className="mt-0.5 rounded-lg bg-white/50 px-1.5 py-1 font-mono text-xs text-foreground backdrop-blur-sm">

@@ -13,9 +13,10 @@ import { Loader2 } from 'lucide-react';
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isLogin, setIsLogin] = useState(true);
+    const [showResend, setShowResend] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { login, signup, user } = useAuth();
+    const { login, signup, resendConfirmation, user } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
 
@@ -50,14 +51,13 @@ export default function LoginPage() {
                 });
             }
             router.push('/');
-        } catch (error: any) {
-            let errorMessage = 'An error occurred. Please try again.';
-            if (error.code === 'auth/invalid-credential') {
-                errorMessage = 'Invalid email or password.';
-            } else if (error.code === 'auth/email-already-in-use') {
-                errorMessage = 'Email is already in use.';
-            } else if (error.code === 'auth/weak-password') {
-                errorMessage = 'Password should be at least 6 characters.';
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error
+                ? error.message
+                : 'An error occurred. Please try again.';
+
+            if (errorMessage.toLowerCase().includes('email not confirmed')) {
+                setShowResend(true);
             }
 
             toast({
@@ -117,6 +117,35 @@ export default function LoginPage() {
                             {isLogin ? 'Sign In' : 'Sign Up'}
                         </Button>
                     </form>
+
+                    {showResend && (
+                        <Button 
+                            variant="outline" 
+                            className="w-full mt-2 border-indigo-200 hover:bg-indigo-50" 
+                            onClick={async () => {
+                                setIsLoading(true);
+                                try {
+                                    await resendConfirmation(email);
+                                    toast({
+                                        title: 'Email Sent',
+                                        description: 'A new confirmation email has been sent to your address.',
+                                    });
+                                    setShowResend(false);
+                                } catch (err: any) {
+                                    toast({
+                                        variant: 'destructive',
+                                        title: 'Error',
+                                        description: err.message,
+                                    });
+                                } finally {
+                                    setIsLoading(false);
+                                }
+                            }}
+                            disabled={isLoading}
+                        >
+                            Resend Confirmation Email
+                        </Button>
+                    )}
 
                     <div className="mt-4 text-center text-sm">
                         <span className="text-muted-foreground">

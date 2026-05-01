@@ -74,13 +74,7 @@ export class LightingManager {
   /**
    * Set up environment map for PBR reflections.
    */
-  setupEnvironment() {
-    // Create a simple gradient environment map
-    const pmremGenerator = new THREE.PMREMGenerator(
-      (this.scene as unknown as { renderer?: THREE.WebGLRenderer }).renderer ??
-      undefined!
-    );
-
+  setupEnvironment(renderer?: THREE.WebGLRenderer) {
     // Create sky gradient cubemap texture
     const canvas = document.createElement("canvas");
     canvas.width = 256;
@@ -99,6 +93,19 @@ export class LightingManager {
     const texture = new THREE.CanvasTexture(canvas);
     texture.mapping = THREE.EquirectangularReflectionMapping;
     this.scene.environment = texture;
+
+    // Generate PMREM environment map if renderer is provided
+    if (renderer) {
+      try {
+        const pmremGenerator = new THREE.PMREMGenerator(renderer);
+        pmremGenerator.compileEquirectangularShader();
+        const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+        this.scene.environment = envMap;
+        pmremGenerator.dispose();
+      } catch {
+        // Fallback: use the canvas texture directly
+      }
+    }
   }
 
   /**

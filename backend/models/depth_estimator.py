@@ -44,6 +44,14 @@ class DepthEstimator:
             logger.warning("CUDA not available — using CPU (slower)")
 
         try:
+            # Temporary fix for PyTorch 2.6 weights_only=True default breaking older checkpoints
+            _original_load = torch.load
+            def _custom_load(*args, **kwargs):
+                kwargs.setdefault("weights_only", False)
+                return _original_load(*args, **kwargs)
+            
+            torch.load = _custom_load
+
             # Load ZoeDepth via torch hub
             self._model = torch.hub.load(
                 "isl-org/ZoeDepth",
@@ -51,6 +59,9 @@ class DepthEstimator:
                 pretrained=True,
                 trust_repo=True,
             )
+            
+            torch.load = _original_load # restore it
+            
             self._model.to(self._device)
             self._model.eval()
             self._is_loaded = True

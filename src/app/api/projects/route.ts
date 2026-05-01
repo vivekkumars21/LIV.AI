@@ -6,12 +6,15 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const limit = searchParams.get("limit") ?? "20";
-    const response = await fetch(`${BACKEND_URL}/api/projects?limit=${limit}`);
+    const authHeader = request.headers.get("authorization") ?? "";
+    const response = await fetch(`${BACKEND_URL}/api/projects?limit=${limit}`, {
+      headers: authHeader ? { Authorization: authHeader } : {},
+    });
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
   } catch (error: unknown) {
     return NextResponse.json(
-      { error: "Failed to fetch local projects", details: String(error) },
+      { error: "Failed to fetch cloud projects", details: String(error) },
       { status: 500 }
     );
   }
@@ -20,16 +23,20 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const authHeader = request.headers.get("authorization") ?? "";
     const response = await fetch(`${BACKEND_URL}/api/projects`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(authHeader ? { Authorization: authHeader } : {}),
+      },
       body: JSON.stringify(body),
     });
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
   } catch (error: unknown) {
     return NextResponse.json(
-      { error: "Failed to save local project", details: String(error) },
+      { error: "Failed to save cloud project", details: String(error) },
       { status: 500 }
     );
   }

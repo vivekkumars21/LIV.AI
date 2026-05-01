@@ -1,19 +1,15 @@
 import type {NextConfig} from 'next';
 
-// Some environments inject a broken Node localStorage stub; remove it so Next treats it as absent.
-if (typeof globalThis !== 'undefined') {
-  const ls = (globalThis as any).localStorage;
-  if (ls && typeof ls.getItem !== 'function') {
-    try {
-      delete (globalThis as any).localStorage;
-    } catch {
-      (globalThis as any).localStorage = undefined;
-    }
-  }
-}
-
-const nextConfig: NextConfig = {
+const nextConfig = {
   /* config options here */
+  async rewrites() {
+    return [
+      {
+        source: '/api/python/:path*',
+        destination: 'http://127.0.0.1:8000/api/:path*',
+      },
+    ];
+  },
   typescript: {
     ignoreBuildErrors: true,
   },

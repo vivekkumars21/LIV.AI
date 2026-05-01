@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8000/api/professionals';
+const API_BASE = '/api/python/professionals';
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -97,12 +97,12 @@ export async function searchProfessionalsByCity(
     profession?: ProfessionType,
     sortBy: 'rating' | 'price_low' | 'price_high' | 'experience' = 'rating',
 ): Promise<Professional[]> {
-    const url = new URL(API_BASE);
-    url.searchParams.append('city', city);
-    if (profession) url.searchParams.append('profession', profession);
-    url.searchParams.append('sort_by', sortBy);
+    const params = new URLSearchParams();
+    params.append('city', city);
+    if (profession) params.append('profession', profession);
+    params.append('sort_by', sortBy);
 
-    const res = await fetch(url.toString());
+    const res = await fetch(`${API_BASE}?${params.toString()}`);
     if (!res.ok) throw new Error('Search failed');
     return res.json();
 }

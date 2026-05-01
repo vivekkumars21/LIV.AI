@@ -132,7 +132,7 @@ export function UploadModal({
                     variant="outline"
                     className="w-full border-white/20 bg-white/50 text-foreground hover:bg-white/80 backdrop-blur-sm"
                   >
-                    Load last local project
+                    Load last cloud project
                   </Button>
                 </div>
               </>

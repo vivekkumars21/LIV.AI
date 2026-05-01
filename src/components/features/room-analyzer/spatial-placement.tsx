@@ -27,7 +27,7 @@ import {
 import { products, parseDimensionsMetric } from '@/lib/products';
 import type { RoomAnalysis } from '@/lib/room-analyzer';
 
-// ─── Types ──────────────────────────────────────────────────
+// Types
 
 interface MeasuredObject {
     name: string;
@@ -77,9 +77,9 @@ interface SpatialPlacementProps {
     imageFile?: File | null;
 }
 
-const BACKEND_URL = 'http://localhost:8000';
+const BACKEND_URL = '/api/python';
 
-// ─── Component ──────────────────────────────────────────────
+// Component
 
 export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps) {
     // State
@@ -102,9 +102,20 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
     const [isCheckingPlacement, setIsCheckingPlacement] = useState(false);
 
     // Manual room dimensions (fallback)
-    const [manualWidth, setManualWidth] = useState('');
-    const [manualLength, setManualLength] = useState('');
+    const [manualWidth, setManualWidth] = useState(
+        analysis?.space?.dimensions?.estimatedWidth ? (analysis.space.dimensions.estimatedWidth / 3.28084).toFixed(2).toString() : ''
+    );
+    const [manualLength, setManualLength] = useState(
+        analysis?.space?.dimensions?.estimatedLength ? (analysis.space.dimensions.estimatedLength / 3.28084).toFixed(2).toString() : ''
+    );
     const [manualHeight, setManualHeight] = useState('2.8');
+
+    useEffect(() => {
+        if (analysis?.space?.dimensions) {
+            setManualWidth((analysis.space.dimensions.estimatedWidth / 3.28084).toFixed(2).toString());
+            setManualLength((analysis.space.dimensions.estimatedLength / 3.28084).toFixed(2).toString());
+        }
+    }, [analysis?.space?.dimensions?.estimatedWidth, analysis?.space?.dimensions?.estimatedLength]);
 
     // View toggle
     const [viewMode, setViewMode] = useState<'original' | 'depth' | 'detection'>('original');
@@ -114,7 +125,7 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
     const minimapCanvasRef = useRef<HTMLCanvasElement>(null);
     const imagePreviewRef = useRef<string | null>(null);
 
-    // ─── Backend health check ───────────────
+    // Backend health check
     useEffect(() => {
         checkBackend();
     }, []);
@@ -122,7 +133,7 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
     const checkBackend = async () => {
         setBackendStatus('checking');
         try {
-            const res = await fetch(`${BACKEND_URL}/api/health`, { signal: AbortSignal.timeout(3000) });
+            const res = await fetch(`${BACKEND_URL}/health`, { signal: AbortSignal.timeout(3000) });
             if (res.ok) {
                 setBackendStatus('online');
             } else {
@@ -133,7 +144,7 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
         }
     };
 
-    // ─── Analyze image via Python backend ───
+    // Analyze image via Python backend
     const analyzeImage = async () => {
         if (!imageFile) return;
         setIsAnalyzing(true);
@@ -144,7 +155,7 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
             formData.append('ceiling_height_m', manualHeight || '2.8');
             formData.append('session_id', 'default');
 
-            const res = await fetch(`${BACKEND_URL}/api/analyze`, {
+            const res = await fetch(`${BACKEND_URL}/analyze`, {
                 method: 'POST',
                 body: formData,
             });
@@ -171,7 +182,7 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
         }
     };
 
-    // ─── Calibration ────────────────────────
+    // Calibration
     const handleCalibrationClick = useCallback(
         (e: React.MouseEvent<HTMLCanvasElement>) => {
             if (!isCalibrating) return;
@@ -254,7 +265,7 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
         if (!calPoint1 || !calPoint2 || !calDistance) return;
 
         try {
-            const res = await fetch(`${BACKEND_URL}/api/calibrate`, {
+            const res = await fetch(`${BACKEND_URL}/calibrate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -282,7 +293,7 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
         setIsCalibrating(false);
     };
 
-    // ─── Placement check ───────────────────
+    // Placement check
     const checkPlacement = async () => {
         const product = products.find((p) => p.id === selectedProductId);
         if (!product) return;
@@ -308,7 +319,7 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
 
         try {
             const endpoint = backendStatus === 'online'
-                ? `${BACKEND_URL}/api/placement`
+                ? `${BACKEND_URL}/placement`
                 : '/api/spatial-reasoning';
 
             const res = await fetch(endpoint, {
@@ -349,7 +360,7 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
         }
     };
 
-    // ─── Mini-map canvas ───────────────────
+    // Mini-map canvas
     useEffect(() => {
         drawMinimap();
     }, [analysisResult, placementResult]);
@@ -470,12 +481,12 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                 // Label
                 ctx.fillStyle = '#22c55e';
                 ctx.font = 'bold 10px sans-serif';
-                ctx.fillText('★ ' + (product?.name || 'New'), rx + 3, ry + 12);
+                ctx.fillText((product?.name || 'New'), rx + 3, ry + 12);
             }
         }
     };
 
-    // ─── Render ─────────────────────────────
+    // Render
 
     const productsWithDims = products.filter((p) => parseDimensionsMetric(p.dimensions));
 
@@ -489,10 +500,10 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                 >
                     <span
                         className={`w-2 h-2 rounded-full ${backendStatus === 'online'
-                                ? 'bg-green-400 animate-pulse'
-                                : backendStatus === 'checking'
-                                    ? 'bg-yellow-400 animate-pulse'
-                                    : 'bg-red-400'
+                            ? 'bg-green-400 animate-pulse'
+                            : backendStatus === 'checking'
+                                ? 'bg-yellow-400 animate-pulse'
+                                : 'bg-red-400'
                             }`}
                     />
                     {backendStatus === 'online'
@@ -519,7 +530,7 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                 )}
             </div>
 
-            {/* ── AI Analysis Section ── */}
+            {/* AI Analysis Section */}
             {backendStatus === 'online' && imageFile && (
                 <Card className="border-blue-500/20 bg-blue-950/10">
                     <CardHeader className="pb-3">
@@ -556,8 +567,8 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                                             key={mode}
                                             onClick={() => setViewMode(mode)}
                                             className={`flex-1 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${viewMode === mode
-                                                    ? 'bg-background shadow text-foreground'
-                                                    : 'text-muted-foreground hover:text-foreground'
+                                                ? 'bg-background shadow text-foreground'
+                                                : 'text-muted-foreground hover:text-foreground'
                                                 }`}
                                         >
                                             {mode === 'original' ? 'Original' : mode === 'depth' ? 'Depth Map' : 'Detections'}
@@ -642,7 +653,7 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                 </Card>
             )}
 
-            {/* ── Calibration Tool ── */}
+            {/* Calibration Tool */}
             {backendStatus === 'online' && imageFile && analysisResult && (
                 <Card className="border-purple-500/20 bg-purple-950/10">
                     <CardHeader className="pb-3">
@@ -741,7 +752,7 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                 </Card>
             )}
 
-            {/* ── Room Dimensions (Manual / Override) ── */}
+            {/* Room Dimensions (Manual / Override) */}
             <Card className="border-border/50">
                 <CardHeader className="pb-3">
                     <CardTitle className="text-lg flex items-center gap-2">
@@ -875,8 +886,8 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                     {/* Result Card */}
                     <Card
                         className={`border-2 ${placementResult.fits
-                                ? 'border-green-500/40 bg-green-950/10'
-                                : 'border-red-500/40 bg-red-950/10'
+                            ? 'border-green-500/40 bg-green-950/10'
+                            : 'border-red-500/40 bg-red-950/10'
                             }`}
                     >
                         <CardHeader className="pb-3">
@@ -937,8 +948,8 @@ export function SpatialPlacement({ analysis, imageFile }: SpatialPlacementProps)
                                     <span className="text-muted-foreground">Remaining Budget</span>
                                     <span
                                         className={`font-semibold flex items-center gap-0.5 ${placementResult.budget_analysis.remaining_budget > 0
-                                                ? 'text-green-400'
-                                                : 'text-red-400'
+                                            ? 'text-green-400'
+                                            : 'text-red-400'
                                             }`}
                                     >
                                         <IndianRupee className="h-3 w-3" />
